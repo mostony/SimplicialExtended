@@ -1,30 +1,104 @@
-//
-// Created by Anton Mosin on 21.11.2023.
-//
 #include "Hasse.h"
+#include <queue>
+#include <set>
 
-void Hasse::PrintAll() {
-    for (const auto &cell : cells_) {
-        cell->Print();
+
+Node &Hasse::GetNode(const std::vector<int> &node) {
+    if (!mapping_.count(node)) {
+        mapping_[node] = Node(node);
+    }
+    return mapping_[node];
+}
+
+void Hasse::AddArc(const std::vector<int> &from, const std::vector<int> &to) {
+    auto &parent = GetNode(from);
+    auto &son = GetNode(to);
+    parent.sons.push_back(to);
+    son.parents.push_back(from);
+    son.depth = parent.depth + 1;
+}
+
+void Hasse::RemoveNode(const std::vector<int> &node) {
+    RecursiveRemoveNode(node);
+}
+
+void Hasse::RemoveArc(const std::vector<int> &from, const std::vector<int> &to) {
+    auto &parent = GetNode(from);
+    auto son = GetNode(to);
+    for (auto it = parent.sons.begin(); it != parent.sons.end(); it++) {
+        if (*it == to) {
+            parent.sons.erase(it);
+            break;
+        }
+    }
+
+    // remove parent from son list
+    for (auto it = son.parents.begin(); it != son.parents.end(); it++) {
+        if (*it == from) {
+            son.parents.erase(it);
+            break;
+        }
     }
 }
 
-void Hasse::AddEdge(std::shared_ptr<Cell> a, std::shared_ptr<Cell> b) {
-    Cell::AddEdge(a, b);
+void Hasse::RecursiveRemoveNode(const std::vector<int> &remove_node) {
+    std::queue<std::vector<int>> q;
+    std::set<std::vector<int>> used;
+    q.push(remove_node);
+    while (!q.empty()) {
+        auto top = q.front();
+        q.pop();
+        auto &node = GetNode(top);
+
+        for (auto nxt: node.sons) {
+            if (!used.count(nxt)) {
+                used.insert(nxt);
+                q.push(nxt);
+            }
+        }
+
+        for (auto prev: node.parents) {
+            RemoveArc(prev, top);
+        }
+
+        node.sons.clear();
+        node.parents.clear();
+    }
+
+    for (auto &node: used) {
+        mapping_.erase(node);
+    }
 }
 
-void Hasse::AddCell(std::shared_ptr<Cell> cell) {
-    cells_.push_back(cell);
-}
+void Hasse::RecursiveAddNode(const std::vector<int> &add_node) {
+    if (mapping_.count(add_node)) {
+        return;
+    }
 
-void Hasse::RemoveCell(std::shared_ptr<Cell> cell) {
-    // stupid, can better
-    Cell::RemoveCell(cell);
+    std::queue<std::vector<int>> q;
+    q.push(add_node);
+    while (!q.empty()) {
+        auto top = q.front();
+        q.pop();
 
-    for (auto it = cells_.begin(); it != cells_.end(); it++) {
-        if (*it == cell) {
-            cells_.erase(it);
-            break;
+        // node is leaf
+        if (top.size() == 1) {
+            continue;
+        }
+        auto &node = GetNode(top);
+
+        for (size_t i = 0; i < top.size(); i++) {
+            auto next = top;
+            next.erase(next.begin() + i);
+
+            bool was_before = mapping_.count(next);
+            auto &lower = GetNode(next);
+
+            AddArc(lower.data, top);
+
+            if (!was_before) {
+                q.push(next);
+            }
         }
     }
 }

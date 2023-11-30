@@ -1,22 +1,42 @@
-//
-// Created by Anton Mosin on 21.11.2023.
-//
-
 #ifndef SIMPL_HASSE_H
 #define SIMPL_HASSE_H
 
-#include "Cell.h"
+#include "Node.h"
 #include <vector>
 #include <memory>
+#include <map>
+#include <cassert>
 
 class Hasse {
 public:
-    void PrintAll();
-    void AddEdge(std::shared_ptr<Cell> a, std::shared_ptr<Cell> b);
-    void AddCell(std::shared_ptr<Cell> cell);
-    void RemoveCell(std::shared_ptr<Cell> cell);
+
+    void DebugPrintAll() {
+        for (auto &[id, node]: mapping_) {
+            node.Debug();
+        }
+    }
+
+    void AddArc(const std::vector<int> &from, const std::vector<int> &to);
+
+    /// remove node and all upper node
+    /// that can reach. In other words all upper sets
+    void RemoveNode(const std::vector<int> &remove_node);
+
+    void RemoveArc(const std::vector<int> &from, const std::vector<int> &to);
+
+
+    // add node and all subsets
+    void RecursiveAddNode(const std::vector<int> &add_node);
+
+    /// use mapping to get node. If node not in mapping
+    /// then create node. Return ptr to Node
+    Node &GetNode(const std::vector<int> &node);
+
 private:
-    std::vector<std::shared_ptr<Cell>> cells_;
+
+    void RecursiveRemoveNode(const std::vector<int> &node);
+
+    std::map<std::vector<int>, Node> mapping_;
 };
 
 #endif //SIMPL_HASSE_H
