@@ -1,17 +1,16 @@
-#ifndef SIMPL_HASSE_H
-#define SIMPL_HASSE_H
+#pragma once
+
+#include <cassert>
+#include <map>
+#include <memory>
+#include <vector>
 
 #include "Node.h"
-#include <vector>
-#include <memory>
-#include <map>
-#include <cassert>
 
 class Hasse {
-public:
-
+   public:
     void DebugPrintAll() {
-        for (auto &[id, node]: mapping_) {
+        for (auto &[id, node] : mapping_) {
             node.Debug();
         }
     }
@@ -24,7 +23,6 @@ public:
 
     void RemoveArc(const std::vector<int> &from, const std::vector<int> &to);
 
-
     // add node and all subsets
     void RecursiveAddNode(const std::vector<int> &add_node);
 
@@ -32,11 +30,8 @@ public:
     /// then create node. Return ptr to Node
     Node &GetNode(const std::vector<int> &node);
 
-private:
-
+   private:
     void RecursiveRemoveNode(const std::vector<int> &node);
 
     std::map<std::vector<int>, Node> mapping_;
 };
-
-#endif //SIMPL_HASSE_H

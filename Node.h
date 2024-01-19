@@ -1,15 +1,13 @@
-#ifndef SIMPL_NODE_H
-#define SIMPL_NODE_H
+#pragma once
 
-#include <vector>
-#include <memory>
 #include <iostream>
-
+#include <memory>
+#include <vector>
 
 struct Node {
     int depth = 0;
     std::vector<std::vector<int>> sons,
-            parents;
+        parents;
     std::vector<int> data;
     int rank = 0;
 
@@ -36,20 +34,17 @@ struct Node {
         std::cerr << "\n";
 
         std::cerr << "sons : ";
-        for (auto x: sons) {
+        for (auto x : sons) {
             PrintVec(x);
             std::cerr << " ";
         }
         std::cerr << "\n";
 
         std::cerr << "parents : ";
-        for (auto x: parents) {
+        for (auto x : parents) {
             PrintVec(x);
             std::cerr << " ";
-
         }
         std::cerr << "\n";
     }
 };
-
-#endif //SIMPL_NODE_H

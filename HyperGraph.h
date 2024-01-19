@@ -1,13 +1,11 @@
-#ifndef SIMPL_HYPERGRAPH_H
-#define SIMPL_HYPERGRAPH_H
-
-#endif //SIMPL_HYPERGRAPH_H
+#pragma once
 
 #include <map>
+
 #include "Hasse.h"
 
 class HyperGraph {
-public:
+   public:
     typedef int32_t Vertex;
 
     void AddEdge(const std::vector<Vertex> &edge);
@@ -16,6 +14,6 @@ public:
 
     void Debug();
 
-private:
+   private:
     Hasse hasse_;
 };

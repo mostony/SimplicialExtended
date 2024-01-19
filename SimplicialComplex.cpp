@@ -1,6 +1,5 @@
 #include "SimplicialComplex.h"
 
-
 void SimplicialComplex::AddComplex(std::vector<VertexId> complex) {
     hasse_.RecursiveAddNode(complex);
 }
