@@ -1,4 +1,5 @@
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 #include <cassert>
 #include <iostream>
@@ -46,6 +47,13 @@ PYBIND11_MODULE(simpl, m) {
     m.def("TestHasse", &TestHasse, "Testing hasse impl.");
     m.def("TestHyper", &TestHyper, "Testing hypergraph impl.");
     m.def("TestSimplex", &TestSimplex, "Testing simplex impl.");
+
+    py::class_<SimplicialComplex>(m, "SimplicialComplex")
+        .def(py::init<>())
+        .def("AddComplex", &SimplicialComplex::AddComplex)
+        .def("RemoveComplex", &SimplicialComplex::RemoveComplex)
+        .def("Debug", &SimplicialComplex::Debug);
+    // .def_readwrite("hasse_", &SimplicialComplex::hasse_);  // Expose member variables
 
     // py::class_<Pet>(m, "Pet")
     //     .def(py::init<const std::string &>())  // our constructor
