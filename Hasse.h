@@ -11,7 +11,7 @@ class Hasse {
    public:
     void DebugPrintAll() {
         for (auto &[id, node] : mapping_) {
-            node.Debug();
+            (*node).Debug();
         }
     }
 
@@ -28,10 +28,10 @@ class Hasse {
 
     /// use mapping to get node. If node not in mapping
     /// then create node. Return ptr to Node
-    Node &GetNode(const std::vector<int> &node);
+    Node *GetNode(const std::vector<int> &node);
 
    private:
     void RecursiveRemoveNode(const std::vector<int> &node);
 
-    std::map<std::vector<int>, Node> mapping_;
+    std::map<std::vector<int>, std::unique_ptr<Node>> mapping_;
 };
