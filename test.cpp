@@ -53,18 +53,10 @@ PYBIND11_MODULE(simpl, m) {
         .def("AddComplex", &SimplicialComplex::AddComplex)
         .def("RemoveComplex", &SimplicialComplex::RemoveComplex)
         .def("Debug", &SimplicialComplex::Debug);
-    // .def_readwrite("hasse_", &SimplicialComplex::hasse_);  // Expose member variables
 
-    // py::class_<Pet>(m, "Pet")
-    //     .def(py::init<const std::string &>())  // our constructor
-    //     .def("setName", &Pet::setName)         // Expose member methods
-    //     .def("getName", &Pet::getName)         // Think about the syntax "&Pet then "::" and the method name
-    //     .def_readwrite("name", &Pet::name);    // Expose member variables
+    py::class_<HyperGraph>(m, "HyperGraph")
+        .def(py::init<>())
+        .def("AddEdge", &HyperGraph::AddEdge)
+        .def("RemoveEdge", &HyperGraph::RemoveEdge)
+        .def("Debug", &HyperGraph::Debug);
 }
-
-// int main() {
-//     std::cerr << "Start testing...\n";
-//     TestHasse();
-//     TestHyper();
-//     TestSimplex();
-// }
