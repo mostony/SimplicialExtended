@@ -102,3 +102,19 @@ void Hasse::RecursiveAddNode(const std::vector<int> &add_node) {
         }
     }
 }
+
+void Hasse::DebugPrintAll() {
+    for (auto &[id, node] : mapping_) {
+        (*node).Debug();
+    }
+}
+
+std::vector<Node *> Hasse::GetMaxFaces() {
+    std::vector<Node *> result;
+    for (auto &[id, node] : mapping_) {
+        if (node->sons.empty()) {
+            result.push_back(node.get());
+        }
+    }
+    return result;
+}

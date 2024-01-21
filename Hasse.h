@@ -9,11 +9,7 @@
 
 class Hasse {
    public:
-    void DebugPrintAll() {
-        for (auto &[id, node] : mapping_) {
-            (*node).Debug();
-        }
-    }
+    void DebugPrintAll();
 
     void AddArc(const std::vector<int> &from, const std::vector<int> &to);
 
@@ -29,6 +25,9 @@ class Hasse {
     /// use mapping to get node. If node not in mapping
     /// then create node. Return ptr to Node
     Node *GetNode(const std::vector<int> &node);
+
+    // TODO: mb UB
+    std::vector<Node *> GetMaxFaces();
 
    private:
     void RecursiveRemoveNode(const std::vector<int> &node);
