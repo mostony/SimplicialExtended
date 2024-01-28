@@ -36,8 +36,8 @@ void MyTest() {
         g[v][u] = g[u][v] = 1;
     }
 
-    SimplicialComplex simpl = SimplicialComplex::CreateCliqueGraph(g, 5);
-    PrintCliques(simpl);
+    auto simpl = std::unique_ptr<SimplicialComplex>(SimplicialComplex::CreateCliqueGraph(g, 5));
+    PrintCliques(*simpl);
 }
 
 void RandomTest(int n, double prob) {
@@ -45,7 +45,7 @@ void RandomTest(int n, double prob) {
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    SimplicialComplex simpl = SimplicialComplex::CreateCliqueGraph(g, 5);
+    auto simpl = std::unique_ptr<SimplicialComplex>(SimplicialComplex::CreateCliqueGraph(g, 5));
 
     auto end = std::chrono::high_resolution_clock::now();
 
@@ -55,5 +55,5 @@ void RandomTest(int n, double prob) {
 
 int main() {
     // MyTest();
-    RandomTest(150, 0.5);
+    RandomTest(100, 0.5);
 }
