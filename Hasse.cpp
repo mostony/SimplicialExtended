@@ -105,7 +105,7 @@ void Hasse::RecursiveAddNode(const std::vector<int> &add_node) {
 
 void Hasse::DebugPrintAll() {
     for (auto &[id, node] : mapping_) {
-        (*node).Debug();
+        node->Debug();
     }
 }
 

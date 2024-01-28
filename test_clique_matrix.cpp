@@ -54,6 +54,6 @@ void RandomTest(int n, double prob) {
 }
 
 int main() {
-    MyTest();
-    RandomTest(100, 0.5);
+    // MyTest();
+    RandomTest(150, 0.5);
 }
