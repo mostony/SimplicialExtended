@@ -6,6 +6,7 @@
 
 struct Node {
     int depth = 0;
+    // TODO change on Node*
     std::vector<std::vector<int>> sons,
         parents;
     std::vector<int> data;

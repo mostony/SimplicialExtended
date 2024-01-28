@@ -77,18 +77,38 @@ SimplicialComplex *SimplicialComplex::CreateCliqueGraph(const std::vector<std::v
             thread.join();
         }
     } else {
+        std::vector<std::vector<int>> cur_layer;
+
         for (int v = 0; v < n; v++) {
-            for (int u = v + 1; u < n; u++) {
+            std::vector<int> from = {v};
+            for (int u = 0; u < v; u++) {
                 if (g[v][u]) {
-                    result->AddComplex({v, u});
+                    std::vector<int> to = {v, u};
+                    result->AddArc(from, to);
                 }
             }
+            cur_layer.push_back(from);
         }
+        for (int it = 1; it + 1 < k; it++) {
+            std::vector<std::vector<int>> next_layer;
 
-        result->hasse_.DebugPrintAll();
-        for (int i = 1; i + 1 <= k; i++) {
+            for (auto middle : cur_layer) {
+                auto middle_node = result->hasse_.GetNode(middle);
+                for (auto sigma1 : middle_node->sons) {
+                    int v1 = sigma1.back();
+                    for (auto sigma2 : middle_node->sons) {
+                        int v2 = sigma2.back();
+                        if (v1 > v2 && g[v1][v2]) {
+                            auto new_data = sigma1;
+                            new_data.push_back(v2);
+                            result->AddArc(sigma1, new_data);
+                        }
+                    }
+                    next_layer.push_back(sigma1);
+                }
+            }
+            std::swap(cur_layer, next_layer);
         }
-        throw std::runtime_error("Not implemented");
     }
     return result;
 }
