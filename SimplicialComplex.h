@@ -2,6 +2,7 @@
 
 #include <exception>
 #include <map>
+#include <thread>
 #include <vector>
 
 #include "Hasse.h"

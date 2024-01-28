@@ -61,6 +61,7 @@ SimplicialComplex SimplicialComplex::CreateCliqueGraph(const std::vector<std::ve
     SimplicialComplex result;
 
     if (method == 0) {  // incremental
+        std::vector<std::thread> threads;
         for (int v = 0; v < n; v++) {
             std::vector<int> N;
             for (int u = 0; u < v; u++) {
@@ -68,7 +69,13 @@ SimplicialComplex SimplicialComplex::CreateCliqueGraph(const std::vector<std::ve
                     N.push_back(u);
                 }
             }
-            AddCofaces(g, 1, k, {v}, N, result);
+            std::vector<int> cur_node = {v};
+            std::thread thread(AddCofaces, std::cref(g), 1, k, cur_node, N, std::ref(result));
+            threads.push_back(std::move(thread));
+        }
+        for (auto &thread : threads) {
+            std::cerr << thread.get_id() << "\n";
+            thread.join();
         }
     } else {
         for (int v = 0; v < n; v++) {
