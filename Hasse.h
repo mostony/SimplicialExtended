@@ -3,6 +3,8 @@
 #include <cassert>
 #include <map>
 #include <memory>
+#include <mutex>
+#include <thread>
 #include <vector>
 
 #include "Node.h"
@@ -31,6 +33,6 @@ class Hasse {
 
    private:
     void RecursiveRemoveNode(const std::vector<int> &node);
-
+    mutable std::mutex mtx;
     std::map<std::vector<int>, std::unique_ptr<Node>> mapping_;
 };

@@ -5,7 +5,9 @@
 
 Node *Hasse::GetNode(const std::vector<int> &node) {
     if (!mapping_.count(node)) {
+        mtx.lock();
         mapping_[node] = std::unique_ptr<Node>(new Node(node));
+        mtx.unlock();
     }
     return mapping_[node].get();
 }
@@ -13,9 +15,12 @@ Node *Hasse::GetNode(const std::vector<int> &node) {
 void Hasse::AddArc(const std::vector<int> &from, const std::vector<int> &to) {
     auto parent = GetNode(from);
     auto son = GetNode(to);
+    // mtx.lock();
+
     parent->sons.push_back(to);
     son->parents.push_back(from);
     son->depth = parent->depth + 1;
+    // mtx.unlock();
 }
 
 void Hasse::RemoveNode(const std::vector<int> &node) {

@@ -18,7 +18,7 @@ void SimplicialComplex::AddArc(const std::vector<int> &from, const std::vector<i
 
 void AddCofaces(const std::vector<std::vector<int>> &g, int depth,
                 int max_depth, std::vector<int> cur_node, std::vector<int> neighbors,
-                SimplicialComplex &simpl) {
+                SimplicialComplex *simpl) {
     if (depth > max_depth) {
         return;
     }
@@ -44,12 +44,12 @@ void AddCofaces(const std::vector<std::vector<int>> &g, int depth,
                 }
             }
         }
-        simpl.AddArc(cur_node, new_node);
+        simpl->AddArc(cur_node, new_node);
         AddCofaces(g, depth + 1, max_depth, new_node, new_neighbors, simpl);
     }
 }
 
-SimplicialComplex SimplicialComplex::CreateCliqueGraph(const std::vector<std::vector<int>> &g, int k, int method) {
+SimplicialComplex *SimplicialComplex::CreateCliqueGraph(const std::vector<std::vector<int>> &g, int k, int method) {
     int n = g.size();
     if (n == 0) {
         throw std::runtime_error("Empty graph");
@@ -58,7 +58,7 @@ SimplicialComplex SimplicialComplex::CreateCliqueGraph(const std::vector<std::ve
         throw std::runtime_error("Wrong format of adjacency matrix");
     }
 
-    SimplicialComplex result;
+    auto result = new SimplicialComplex();
 
     if (method == 0) {  // incremental
         std::vector<std::thread> threads;
@@ -70,23 +70,22 @@ SimplicialComplex SimplicialComplex::CreateCliqueGraph(const std::vector<std::ve
                 }
             }
             std::vector<int> cur_node = {v};
-            std::thread thread(AddCofaces, std::cref(g), 1, k, cur_node, N, std::ref(result));
+            std::thread thread(AddCofaces, std::cref(g), 1, k, cur_node, N, result);
             threads.push_back(std::move(thread));
         }
         for (auto &thread : threads) {
-            std::cerr << thread.get_id() << "\n";
             thread.join();
         }
     } else {
         for (int v = 0; v < n; v++) {
             for (int u = v + 1; u < n; u++) {
                 if (g[v][u]) {
-                    result.AddComplex({v, u});
+                    result->AddComplex({v, u});
                 }
             }
         }
 
-        result.hasse_.DebugPrintAll();
+        result->hasse_.DebugPrintAll();
         for (int i = 1; i + 1 <= k; i++) {
         }
         throw std::runtime_error("Not implemented");
@@ -99,7 +98,7 @@ std::vector<std::vector<int>> SimplicialComplex::GetMaxFaces() {
     std::vector<std::vector<int>> result;
     for (size_t i = 0; i < data.size(); i++) {
         result.push_back(data[i]->data);
-        sort(result.back().begin(), result.back().end());
+        std::sort(result.back().begin(), result.back().end());
     }
     return result;
 }
