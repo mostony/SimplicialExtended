@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # add_subdirectory(external/pybind11)
 # pybind11_add_module(simpl 
-#                 test.cpp 
+#                 module_creation.cpp 
 #                 Hasse.cpp
 #                 HyperGraph.cpp
 #                 Node.cpp

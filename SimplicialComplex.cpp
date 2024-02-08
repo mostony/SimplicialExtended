@@ -75,7 +75,6 @@ SimplicialComplex *SimplicialComplex::CreateCliqueGraph(
             throw std::runtime_error("Zero threads");
         }
 
-        total_threads = 10;
         std::vector<std::thread> threads;
 
         // std::vector<int> perm(n);
@@ -85,7 +84,8 @@ SimplicialComplex *SimplicialComplex::CreateCliqueGraph(
         // std::shuffle(perm.begin(), perm.end(), rng);
 
         auto AddSubsetVertices = [&](int l, int r) {
-            for (int v = l; v < r; v++) {
+            for (int i = l; i < r; i++) {
+                int v = i;
                 std::vector<int> N;
                 for (int u = 0; u < v; u++) {
                     if (g[v][u]) {
@@ -102,7 +102,7 @@ SimplicialComplex *SimplicialComplex::CreateCliqueGraph(
              index_thread++) {
             int l = index_thread * bucket;
             int r = std::min((index_thread + 1) * bucket, n);
-            std::cerr << l << ' ' << r << std::endl;
+            // std::cerr << l << ' ' << r << std::endl;
             std::thread th(AddSubsetVertices, l, r);
             threads.emplace_back(std::move(th));
         }
