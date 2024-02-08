@@ -23,7 +23,8 @@ void Hasse::RemoveNode(const std::vector<int> &node) {
     RecursiveRemoveNode(node);
 }
 
-void Hasse::RemoveArc(const std::vector<int> &from, const std::vector<int> &to) {
+void Hasse::RemoveArc(const std::vector<int> &from,
+                      const std::vector<int> &to) {
     auto parent = GetNode(from);
     auto son = GetNode(to);
     for (auto it = parent->sons.begin(); it != parent->sons.end(); it++) {
@@ -119,3 +120,5 @@ std::vector<Node *> Hasse::GetMaxFaces() {
     }
     return result;
 }
+
+int Hasse::Size() { return mapping_.size(); }

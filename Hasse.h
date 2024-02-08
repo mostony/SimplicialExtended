@@ -31,6 +31,8 @@ class Hasse {
     // TODO: mb UB
     std::vector<Node *> GetMaxFaces();
 
+    int Size();
+
    private:
     void RecursiveRemoveNode(const std::vector<int> &node);
     mutable std::mutex mtx;

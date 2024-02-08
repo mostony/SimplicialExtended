@@ -1,5 +1,7 @@
 #include "SimplicialComplex.h"
 
+#include <random>
+
 void SimplicialComplex::AddComplex(std::vector<VertexId> complex) {
     hasse_.RecursiveAddNode(complex);
 }
@@ -8,17 +10,18 @@ void SimplicialComplex::RemoveComplex(std::vector<VertexId> complex) {
     hasse_.RemoveNode(complex);
 }
 
-void SimplicialComplex::Debug() {
-    hasse_.DebugPrintAll();
-}
+void SimplicialComplex::Debug() { hasse_.DebugPrintAll(); }
 
-void SimplicialComplex::AddArc(const std::vector<int> &from, const std::vector<int> &to) {
+int SimplicialComplex::HasseSize() { return hasse_.Size(); }
+
+void SimplicialComplex::AddArc(const std::vector<int> &from,
+                               const std::vector<int> &to) {
     hasse_.AddArc(from, to);
 }
 
 void AddCofaces(const std::vector<std::vector<int>> &g, int depth,
-                int max_depth, std::vector<int> cur_node, std::vector<int> neighbors,
-                SimplicialComplex *simpl) {
+                int max_depth, std::vector<int> cur_node,
+                std::vector<int> neighbors, SimplicialComplex *simpl) {
     if (depth > max_depth) {
         return;
     }
@@ -49,7 +52,9 @@ void AddCofaces(const std::vector<std::vector<int>> &g, int depth,
     }
 }
 
-SimplicialComplex *SimplicialComplex::CreateCliqueGraph(const std::vector<std::vector<int>> &g, int k, int method) {
+SimplicialComplex *SimplicialComplex::CreateCliqueGraph(
+    const std::vector<std::vector<int>> &g, int k, int method,
+    int total_threads) {
     int n = g.size();
     if (n == 0) {
         throw std::runtime_error("Empty graph");
@@ -61,21 +66,51 @@ SimplicialComplex *SimplicialComplex::CreateCliqueGraph(const std::vector<std::v
     auto result = new SimplicialComplex();
 
     if (method == 0) {  // incremental
-        std::vector<std::thread> threads;
-        for (int v = 0; v < n; v++) {
-            std::vector<int> N;
-            for (int u = 0; u < v; u++) {
-                if (g[v][u]) {
-                    N.push_back(u);
-                }
-            }
-            std::vector<int> cur_node = {v};
-            std::thread thread(AddCofaces, std::cref(g), 1, k, cur_node, N, result);
-            threads.push_back(std::move(thread));
+        if (total_threads == -1) {
+            // TODO I'm not sure about this line
+            total_threads = std::thread::hardware_concurrency();
         }
+
+        if (total_threads == 0) {
+            throw std::runtime_error("Zero threads");
+        }
+
+        total_threads = 10;
+        std::vector<std::thread> threads;
+
+        // std::vector<int> perm(n);
+        // iota(perm.begin(), perm.end(), 0);
+        // std::mt19937 rng(513515);
+
+        // std::shuffle(perm.begin(), perm.end(), rng);
+
+        auto AddSubsetVertices = [&](int l, int r) {
+            for (int v = l; v < r; v++) {
+                std::vector<int> N;
+                for (int u = 0; u < v; u++) {
+                    if (g[v][u]) {
+                        N.push_back(u);
+                    }
+                }
+                std::vector<int> cur_node = {v};
+                AddCofaces(g, 1, k, cur_node, N, result);
+            }
+        };
+
+        int bucket = std::max(n / total_threads, 1);
+        for (int index_thread = 0; index_thread < total_threads;
+             index_thread++) {
+            int l = index_thread * bucket;
+            int r = std::min((index_thread + 1) * bucket, n);
+            std::cerr << l << ' ' << r << std::endl;
+            std::thread th(AddSubsetVertices, l, r);
+            threads.emplace_back(std::move(th));
+        }
+
         for (auto &thread : threads) {
             thread.join();
         }
+
     } else {
         std::vector<std::vector<int>> cur_layer;
 
