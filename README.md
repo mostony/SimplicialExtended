@@ -1,5 +1,5 @@
 # SimplicialExtended
-Library for simplex complex and etc. Now implemented Hassse diagram.
+Library for simplex complex and etc. Now implemented using Hasse diagram.
 
 
 
@@ -19,3 +19,7 @@ cmake --build .
 ```
 
 then just import simpl.
+
+### Testing
+For testing you can generate letter_image dataset using /dataset/generate_image_dataset.py.
+Then launch test_clique_matrix.cpp

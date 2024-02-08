@@ -75,7 +75,7 @@ void LetterTest5() {
             auto start = std::chrono::high_resolution_clock::now();
 
             auto simpl = std::unique_ptr<SimplicialComplex>(
-                SimplicialComplex::CreateCliqueGraph(g, 30, method, threads));
+                SimplicialComplex::CreateCliqueGraph(g, 50, method, threads));
 
             auto end = std::chrono::high_resolution_clock::now();
 
