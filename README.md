@@ -21,5 +21,15 @@ cmake --build .
 then just import simpl.
 
 ### Testing
-For testing you can generate letter_image dataset using /dataset/generate_image_dataset.py.
-Then launch test_clique_matrix.cpp
+For testing you can generate letter_image dataset using
+```
+python3 ./dataset/generate_image_dataset.py.
+```
+Then build project using cmake:
+```
+cmake -S . -B build
+cd build
+cmake --build .
+
+```
+Then launch ./simplex_test
