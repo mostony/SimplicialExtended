@@ -4,7 +4,7 @@
 #include <set>
 
 Node *Hasse::GetNode(const std::vector<int> &node) {
-    std::lock_guard<std::mutex> lock(mtx);
+    // std::lock_guard<std::mutex> lock(mtx);
     if (!mapping_.count(node)) {
         mapping_[node] = std::unique_ptr<Node>(new Node(node));
     }
@@ -122,3 +122,9 @@ std::vector<Node *> Hasse::GetMaxFaces() {
 }
 
 int Hasse::Size() { return mapping_.size(); }
+
+void Merge(Hasse &current, Hasse &other) {
+    for (auto &[key, value] : other.mapping_) {
+        current.mapping_[key] = std::move(value);
+    }
+}

@@ -45,7 +45,7 @@ void RandomTest(int n, double prob) {
     auto start = std::chrono::high_resolution_clock::now();
 
     auto simpl = std::unique_ptr<SimplicialComplex>(
-        SimplicialComplex::CreateCliqueGraph(g, 5, 0, 1));
+        SimplicialComplex::CreateCliqueGraph(g, 5, 0, -1));
 
     auto end = std::chrono::high_resolution_clock::now();
 
@@ -59,7 +59,7 @@ void RandomTest(int n, double prob) {
 namespace fs = std::filesystem;
 
 void LetterTest5() {
-    std::ifstream in("dataset/images5.txt");  // TODO very bad
+    std::ifstream in("../dataset/images5.txt");  // TODO very bad
     int n = 20000;
     std::vector<std::vector<int>> g(n, std::vector<int>(n));
     for (int i = 0; i < n; i++) {
@@ -103,7 +103,7 @@ void LetterTest5() {
 }
 
 void LetterTest10() {
-    std::ifstream in("dataset/images10.txt");  // TODO very bad
+    std::ifstream in("../dataset/images10.txt");  // TODO very bad
     int n = 20000;
     std::vector<std::vector<int>> g(n, std::vector<int>(n));
     for (int i = 0; i < n; i++) {
@@ -147,7 +147,7 @@ void LetterTest10() {
 }
 
 void LetterTest15() {
-    std::ifstream in("dataset/images15.txt");  // TODO very bad
+    std::ifstream in("../dataset/images15.txt");  // TODO very bad
     int n = 20000;
     std::vector<std::vector<int>> g(n, std::vector<int>(n));
     for (int i = 0; i < n; i++) {
@@ -191,7 +191,7 @@ void LetterTest15() {
 }
 
 void LetterTest20() {
-    std::ifstream in("dataset/images20.txt");  // TODO very bad
+    std::ifstream in("../dataset/images20.txt");  // TODO very bad
     int n = 20000;
     std::vector<std::vector<int>> g(n, std::vector<int>(n));
     for (int i = 0; i < n; i++) {
@@ -203,7 +203,7 @@ void LetterTest20() {
     }
 
     for (int method : {0, 1}) {
-        for (int threads : {-1, 1}) {
+        for (int threads : {-1, +1}) {
             auto start = std::chrono::high_resolution_clock::now();
 
             auto simpl = std::unique_ptr<SimplicialComplex>(
@@ -236,9 +236,9 @@ void LetterTest20() {
 
 int main() {
     // MyTest();
-    // RandomTest(150, 0.5);
+    // RandomTest(120, 0.5);
     // LetterTest5();
     // LetterTest10();
-    // LetterTest15();
-    LetterTest20();
+    LetterTest15();
+    // LetterTest20();
 }

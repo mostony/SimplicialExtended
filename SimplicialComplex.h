@@ -21,6 +21,8 @@ class SimplicialComplex {
 
     int HasseSize();
 
+    friend void Merge(SimplicialComplex *current, SimplicialComplex *other);
+
     // TODO: change method to enum
     static SimplicialComplex *CreateCliqueGraph(
         const std::vector<std::vector<int>> &g, int k, int method = 0,

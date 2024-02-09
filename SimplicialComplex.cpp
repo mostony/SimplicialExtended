@@ -76,14 +76,10 @@ SimplicialComplex *SimplicialComplex::CreateCliqueGraph(
         }
 
         std::vector<std::thread> threads;
+        std::vector<SimplicialComplex *> thread_results;
 
-        // std::vector<int> perm(n);
-        // iota(perm.begin(), perm.end(), 0);
-        // std::mt19937 rng(513515);
-
-        // std::shuffle(perm.begin(), perm.end(), rng);
-
-        auto AddSubsetVertices = [&](int l, int r) {
+        auto AddSubsetVertices = [&](int l, int r,
+                                     SimplicialComplex *thread_result) {
             for (int i = l; i < r; i++) {
                 int v = i;
                 std::vector<int> N;
@@ -93,7 +89,7 @@ SimplicialComplex *SimplicialComplex::CreateCliqueGraph(
                     }
                 }
                 std::vector<int> cur_node = {v};
-                AddCofaces(g, 1, k, cur_node, N, result);
+                AddCofaces(g, 1, k, cur_node, N, thread_result);
             }
         };
 
@@ -103,14 +99,20 @@ SimplicialComplex *SimplicialComplex::CreateCliqueGraph(
             int l = index_thread * bucket;
             int r = std::min((index_thread + 1) * bucket, n);
             // std::cerr << l << ' ' << r << std::endl;
-            std::thread th(AddSubsetVertices, l, r);
-            threads.emplace_back(std::move(th));
+            if (l < r) {
+                thread_results.push_back(new SimplicialComplex());
+                std::thread th(AddSubsetVertices, l, r, thread_results.back());
+                threads.emplace_back(std::move(th));
+            }
         }
 
         for (auto &thread : threads) {
             thread.join();
         }
 
+        for (auto thread_result : thread_results) {
+            Merge(result, thread_result);
+        }
     } else {
         std::vector<std::vector<int>> cur_layer;
 
@@ -156,4 +158,9 @@ std::vector<std::vector<int>> SimplicialComplex::GetMaxFaces() {
         std::sort(result.back().begin(), result.back().end());
     }
     return result;
+}
+
+void Merge(SimplicialComplex *current, SimplicialComplex *other) {
+    Merge(current->hasse_, other->hasse_);
+    delete other;
 }
