@@ -1,7 +1,6 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+#include "pybind11/pybind11.h"
+#include "pybind11/stl.h"
 
-#include <cassert>
 #include <iostream>
 
 #include "Hasse.h"

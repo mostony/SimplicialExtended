@@ -1,7 +1,5 @@
 #include "SimplicialComplex.h"
 
-#include <random>
-
 void SimplicialComplex::AddComplex(std::vector<VertexId> complex) {
     hasse_.RecursiveAddNode(complex);
 }
@@ -10,18 +8,22 @@ void SimplicialComplex::RemoveComplex(std::vector<VertexId> complex) {
     hasse_.RemoveNode(complex);
 }
 
-void SimplicialComplex::Debug() { hasse_.DebugPrintAll(); }
+void SimplicialComplex::Debug() {
+    hasse_.DebugPrintAll();
+}
 
-int SimplicialComplex::HasseSize() { return hasse_.Size(); }
+int SimplicialComplex::HasseSize() {
+    return hasse_.Size();
+}
 
-void SimplicialComplex::AddArc(const std::vector<int> &from,
-                               const std::vector<int> &to) {
+void SimplicialComplex::AddArc(const std::vector<int>& from,
+                               const std::vector<int>& to) {
     hasse_.AddArc(from, to);
 }
 
-void AddCofaces(const std::vector<std::vector<int>> &g, int depth,
+void AddCofaces(const std::vector<std::vector<int>>& g, int depth,
                 int max_depth, std::vector<int> cur_node,
-                std::vector<int> neighbors, SimplicialComplex *simpl) {
+                std::vector<int> neighbors, SimplicialComplex* simpl) {
     if (depth > max_depth) {
         return;
     }
@@ -52,8 +54,8 @@ void AddCofaces(const std::vector<std::vector<int>> &g, int depth,
     }
 }
 
-SimplicialComplex *SimplicialComplex::CreateCliqueGraph(
-    const std::vector<std::vector<int>> &g, int k, int method,
+SimplicialComplex* SimplicialComplex::CreateCliqueGraph(
+    const std::vector<std::vector<int>>& g, int k, int method,
     int total_threads) {
     int n = g.size();
     if (n == 0) {
@@ -76,10 +78,10 @@ SimplicialComplex *SimplicialComplex::CreateCliqueGraph(
         }
 
         std::vector<std::thread> threads;
-        std::vector<SimplicialComplex *> thread_results;
+        std::vector<SimplicialComplex*> thread_results;
 
         auto AddSubsetVertices = [&](int l, int r,
-                                     SimplicialComplex *thread_result) {
+                                     SimplicialComplex* thread_result) {
             for (int i = l; i < r; i++) {
                 int v = i;
                 std::vector<int> N;
@@ -106,7 +108,7 @@ SimplicialComplex *SimplicialComplex::CreateCliqueGraph(
             }
         }
 
-        for (auto &thread : threads) {
+        for (auto& thread : threads) {
             thread.join();
         }
 
@@ -160,7 +162,7 @@ std::vector<std::vector<int>> SimplicialComplex::GetMaxFaces() {
     return result;
 }
 
-void Merge(SimplicialComplex *current, SimplicialComplex *other) {
+void Merge(SimplicialComplex* current, SimplicialComplex* other) {
     Merge(current->hasse_, other->hasse_);
     delete other;
 }

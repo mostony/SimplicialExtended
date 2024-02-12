@@ -2,11 +2,11 @@
 #include <fstream>
 #include <iostream>
 
-#include "SimplicialComplex.h"
-#include "generator.h"
+#include "src/SimplicialComplex.h"
+#include "testing/generator.h"
 
 // Print only max cliques
-void PrintCliques(SimplicialComplex &simpl) {
+void PrintCliques(SimplicialComplex& simpl) {
     auto cliques = simpl.GetMaxFaces();
     for (auto max_cliq : cliques) {
         std::cerr << "{";
@@ -28,7 +28,7 @@ void MyTest() {
     std::vector<std::vector<int>> edges = {
         {1, 2}, {2, 3}, {1, 3}, {2, 4}, {4, 5}};
     std::vector<std::vector<int>> g(n, std::vector<int>(n));
-    for (const auto &e : edges) {
+    for (const auto& e : edges) {
         int v = e[0] - 1;
         int u = e[1] - 1;
         g[v][u] = g[u][v] = 1;
@@ -235,10 +235,10 @@ void LetterTest20() {
 }
 
 int main() {
-    // MyTest();
+    MyTest();
     // RandomTest(120, 0.5);
     // LetterTest5();
     // LetterTest10();
-    LetterTest15();
+    // LetterTest15();
     // LetterTest20();
 }

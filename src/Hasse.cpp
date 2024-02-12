@@ -3,7 +3,7 @@
 #include <queue>
 #include <set>
 
-Node *Hasse::GetNode(const std::vector<int> &node) {
+Node* Hasse::GetNode(const std::vector<int>& node) {
     // std::lock_guard<std::mutex> lock(mtx);
     if (!mapping_.count(node)) {
         mapping_[node] = std::unique_ptr<Node>(new Node(node));
@@ -11,7 +11,7 @@ Node *Hasse::GetNode(const std::vector<int> &node) {
     return mapping_[node].get();
 }
 
-void Hasse::AddArc(const std::vector<int> &from, const std::vector<int> &to) {
+void Hasse::AddArc(const std::vector<int>& from, const std::vector<int>& to) {
     auto parent = GetNode(from);
     auto son = GetNode(to);
     parent->sons.push_back(to);
@@ -19,12 +19,12 @@ void Hasse::AddArc(const std::vector<int> &from, const std::vector<int> &to) {
     son->depth = parent->depth + 1;
 }
 
-void Hasse::RemoveNode(const std::vector<int> &node) {
+void Hasse::RemoveNode(const std::vector<int>& node) {
     RecursiveRemoveNode(node);
 }
 
-void Hasse::RemoveArc(const std::vector<int> &from,
-                      const std::vector<int> &to) {
+void Hasse::RemoveArc(const std::vector<int>& from,
+                      const std::vector<int>& to) {
     auto parent = GetNode(from);
     auto son = GetNode(to);
     for (auto it = parent->sons.begin(); it != parent->sons.end(); it++) {
@@ -43,7 +43,7 @@ void Hasse::RemoveArc(const std::vector<int> &from,
     }
 }
 
-void Hasse::RecursiveRemoveNode(const std::vector<int> &remove_node) {
+void Hasse::RecursiveRemoveNode(const std::vector<int>& remove_node) {
     std::queue<std::vector<int>> q;
     std::set<std::vector<int>> used;
     q.push(remove_node);
@@ -67,12 +67,12 @@ void Hasse::RecursiveRemoveNode(const std::vector<int> &remove_node) {
         node->parents.clear();
     }
 
-    for (auto &node : used) {
+    for (auto& node : used) {
         mapping_.erase(node);
     }
 }
 
-void Hasse::RecursiveAddNode(const std::vector<int> &add_node) {
+void Hasse::RecursiveAddNode(const std::vector<int>& add_node) {
     if (mapping_.count(add_node)) {
         return;
     }
@@ -106,14 +106,14 @@ void Hasse::RecursiveAddNode(const std::vector<int> &add_node) {
 }
 
 void Hasse::DebugPrintAll() {
-    for (auto &[id, node] : mapping_) {
+    for (auto& [id, node] : mapping_) {
         node->Debug();
     }
 }
 
-std::vector<Node *> Hasse::GetMaxFaces() {
-    std::vector<Node *> result;
-    for (auto &[id, node] : mapping_) {
+std::vector<Node*> Hasse::GetMaxFaces() {
+    std::vector<Node*> result;
+    for (auto& [id, node] : mapping_) {
         if (node->sons.empty()) {
             result.push_back(node.get());
         }
@@ -121,10 +121,12 @@ std::vector<Node *> Hasse::GetMaxFaces() {
     return result;
 }
 
-int Hasse::Size() { return mapping_.size(); }
+int Hasse::Size() {
+    return mapping_.size();
+}
 
-void Merge(Hasse &current, Hasse &other) {
-    for (auto &[key, value] : other.mapping_) {
+void Merge(Hasse& current, Hasse& other) {
+    for (auto& [key, value] : other.mapping_) {
         current.mapping_[key] = std::move(value);
     }
 }
