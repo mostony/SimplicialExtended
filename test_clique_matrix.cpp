@@ -35,7 +35,7 @@ void MyTest() {
     }
 
     auto simpl = std::unique_ptr<SimplicialComplex>(
-        SimplicialComplex::CreateCliqueGraph(g, 5, 0));
+        SimplicialComplex::CreateCliqueGraph(g, 5, 1));
     PrintCliques(*simpl);
 }
 
@@ -56,20 +56,8 @@ void RandomTest(int n, double prob) {
               << 1.0 * elapsed / 1000 / 1000 << "\n";
 }
 
-namespace fs = std::filesystem;
-
 void LetterTest5() {
-    std::ifstream in("../dataset/images5.txt");  // TODO very bad
-    int n = 20000;
-    std::vector<std::vector<int>> g(n, std::vector<int>(n));
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            int x;
-            in >> x;
-            g[i][j] = x;
-        }
-    }
-
+    auto g = GenerateImageDatasetMatrix(20000, 5, 1);
     for (int method : {0, 1}) {
         for (int threads : {-1, 1}) {
             auto start = std::chrono::high_resolution_clock::now();
@@ -103,17 +91,7 @@ void LetterTest5() {
 }
 
 void LetterTest10() {
-    std::ifstream in("../dataset/images10.txt");  // TODO very bad
-    int n = 20000;
-    std::vector<std::vector<int>> g(n, std::vector<int>(n));
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            int x;
-            in >> x;
-            g[i][j] = x;
-        }
-    }
-
+    auto g = GenerateImageDatasetMatrix(20000, 10, 0);
     for (int method : {0, 1}) {
         for (int threads : {-1, 1}) {
             auto start = std::chrono::high_resolution_clock::now();
@@ -147,17 +125,7 @@ void LetterTest10() {
 }
 
 void LetterTest15() {
-    std::ifstream in("../dataset/images15.txt");  // TODO very bad
-    int n = 20000;
-    std::vector<std::vector<int>> g(n, std::vector<int>(n));
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            int x;
-            in >> x;
-            g[i][j] = x;
-        }
-    }
-
+    auto g = GenerateImageDatasetMatrix(20000, 15, 0);
     for (int method : {0, 1}) {
         for (int threads : {-1, 1}) {
             auto start = std::chrono::high_resolution_clock::now();
@@ -191,16 +159,7 @@ void LetterTest15() {
 }
 
 void LetterTest20() {
-    std::ifstream in("../dataset/images20.txt");  // TODO very bad
-    int n = 20000;
-    std::vector<std::vector<int>> g(n, std::vector<int>(n));
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            int x;
-            in >> x;
-            g[i][j] = x;
-        }
-    }
+    auto g = GenerateImageDatasetMatrix(20'000, 20, 0);
 
     for (int method : {0, 1}) {
         for (int threads : {-1, +1}) {
@@ -234,8 +193,51 @@ void LetterTest20() {
     }
 }
 
+const int TRY = 1;
+
+void Test() {
+    for (int method : {0, 1}) {
+        for (int threads : {-1, +1}) {
+            for (int k : {5, 10, 15, 20}) {
+                std::string path = "./testing/algo" + std::to_string(method) +
+                                   std::to_string(threads == -1) +
+                                   std::to_string(k) + ".txt";
+                for (int n = 32; n <= 2048; n *= 2) {
+                    double mean_time = 0;
+                    for (int random_seed = 0; random_seed < TRY;
+                         random_seed++) {
+                        auto g = GenerateImageDatasetMatrix(std::min(n, 20'000),
+                                                            k, random_seed);
+
+                        auto start = std::chrono::high_resolution_clock::now();
+                        auto simpl = std::unique_ptr<SimplicialComplex>(
+                            SimplicialComplex::CreateCliqueGraph(g, 50, method,
+                                                                 threads));
+
+                        auto end = std::chrono::high_resolution_clock::now();
+
+                        auto elapsed =
+                            std::chrono::duration_cast<
+                                std::chrono::microseconds>(end - start)
+                                .count();
+
+                        mean_time += 1.0 * elapsed / 1000 / 1000;
+                    }
+                    mean_time /= TRY;
+                    std::cerr << "Mean Elapsed time " << method << " "
+                              << threads << " " << mean_time << "\n";
+
+                    std::ofstream fout(path, std::ios_base::app);
+                    fout << mean_time << " ";
+                }
+            }
+        }
+    }
+}
+
 int main() {
-    MyTest();
+    Test();
+    // MyTest();
     // RandomTest(120, 0.5);
     // LetterTest5();
     // LetterTest10();

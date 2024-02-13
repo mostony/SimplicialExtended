@@ -42,8 +42,8 @@ def GenerateImageDataset(n, k, random_seed=228):
 
     end_time = time.time()
 
-    with open(f"testing/times{k}.txt", "a+") as f:
-        f.write(str(end_time - start_time) + " ")
+    # with open(f"testing/times{k}.txt", "a+") as f:
+    #     f.write(str(end_time - start_time) + " ")
 
     print(f"Finished generating graph for n={n}, k={k}!")
     print(f"Elapsed time of generating graph : {end_time - start_time} s")
@@ -57,8 +57,11 @@ def GenerateImageDataset(n, k, random_seed=228):
 
 
 import sys
+import os
 
 if __name__ == "__main__":
+    print(f"Python path: {os.getcwd()}")
+    print("HIIIII")
     assert len(sys.argv) == 4
     n = int(sys.argv[1])
     k = int(sys.argv[2])

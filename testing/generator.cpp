@@ -20,6 +20,9 @@ std::vector<std::vector<int>> GenerateRandomMatrix(int n, double p) {
 
 #include <iostream>
 
+#include <filesystem>
+#include <fstream>
+
 std::vector<std::vector<int>> GenerateImageDatasetMatrix(
     int n, int k, int random_seed = 228) {
     // TODO
@@ -32,5 +35,16 @@ std::vector<std::vector<int>> GenerateImageDatasetMatrix(
 
     std::cerr << "calling: " << call_string << "\n";
     system(call_string.c_str());
-    return {{}};
+    std::cerr << std::filesystem::current_path() << "\n";
+
+    std::ifstream in("testing/images.txt");  // TODO very bad
+    std::vector<std::vector<int>> g(n, std::vector<int>(n));
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            int x;
+            in >> x;
+            g[i][j] = x;
+        }
+    }
+    return g;
 }

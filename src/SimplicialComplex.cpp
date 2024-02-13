@@ -66,17 +66,16 @@ SimplicialComplex* SimplicialComplex::CreateCliqueGraph(
     }
 
     auto result = new SimplicialComplex();
+    if (total_threads == -1) {
+        // TODO I'm not sure about this line
+        total_threads = std::thread::hardware_concurrency();
+    }
+
+    if (total_threads == 0) {
+        throw std::runtime_error("Zero threads");
+    }
 
     if (method == 0) {  // incremental
-        if (total_threads == -1) {
-            // TODO I'm not sure about this line
-            total_threads = std::thread::hardware_concurrency();
-        }
-
-        if (total_threads == 0) {
-            throw std::runtime_error("Zero threads");
-        }
-
         std::vector<std::thread> threads;
         std::vector<SimplicialComplex*> thread_results;
 
@@ -95,7 +94,7 @@ SimplicialComplex* SimplicialComplex::CreateCliqueGraph(
             }
         };
 
-        int bucket = std::max(n / total_threads, 1);
+        int bucket = std::max((n + total_threads - 1) / total_threads, 1);
         for (int index_thread = 0; index_thread < total_threads;
              index_thread++) {
             int l = index_thread * bucket;
@@ -116,37 +115,62 @@ SimplicialComplex* SimplicialComplex::CreateCliqueGraph(
             Merge(result, thread_result);
         }
     } else {
-        std::vector<std::vector<int>> cur_layer;
+        std::vector<std::thread> threads;
+        std::vector<SimplicialComplex*> thread_results;
 
-        for (int v = 0; v < n; v++) {
-            std::vector<int> from = {v};
-            for (int u = 0; u < v; u++) {
-                if (g[v][u]) {
-                    std::vector<int> to = {v, u};
-                    result->AddArc(from, to);
-                }
-            }
-            cur_layer.push_back(from);
-        }
-        for (int it = 1; it + 1 < k; it++) {
-            std::vector<std::vector<int>> next_layer;
-
-            for (auto middle : cur_layer) {
-                auto middle_node = result->hasse_.GetNode(middle);
-                for (auto sigma1 : middle_node->sons) {
-                    int v1 = sigma1.back();
-                    for (auto sigma2 : middle_node->sons) {
-                        int v2 = sigma2.back();
-                        if (v1 > v2 && g[v1][v2]) {
-                            auto new_data = sigma1;
-                            new_data.push_back(v2);
-                            result->AddArc(sigma1, new_data);
-                        }
+        auto AddSubsetVertices = [&](int l, int r,
+                                     SimplicialComplex* thread_result) {
+            std::vector<std::vector<int>> cur_layer;
+            for (int v = l; v < r; v++) {
+                std::vector<int> from = {v};
+                for (int u = 0; u < v; u++) {
+                    if (g[v][u]) {
+                        std::vector<int> to = {v, u};
+                        thread_result->AddArc(from, to);
                     }
-                    next_layer.push_back(sigma1);
                 }
+                cur_layer.push_back(from);
             }
-            std::swap(cur_layer, next_layer);
+            for (int it = 1; it + 1 < k; it++) {
+                std::vector<std::vector<int>> next_layer;
+
+                for (auto middle : cur_layer) {
+                    auto middle_node = thread_result->hasse_.GetNode(middle);
+                    for (auto sigma1 : middle_node->sons) {
+                        int v1 = sigma1.back();
+                        for (auto sigma2 : middle_node->sons) {
+                            int v2 = sigma2.back();
+                            if (v1 > v2 && g[v1][v2]) {
+                                auto new_data = sigma1;
+                                new_data.push_back(v2);
+                                thread_result->AddArc(sigma1, new_data);
+                            }
+                        }
+                        next_layer.push_back(sigma1);
+                    }
+                }
+                std::swap(cur_layer, next_layer);
+            }
+        };
+
+        int bucket = std::max((n + total_threads - 1) / total_threads, 1);
+        for (int index_thread = 0; index_thread < total_threads;
+             index_thread++) {
+            int l = index_thread * bucket;
+            int r = std::min((index_thread + 1) * bucket, n);
+            if (l < r) {
+                thread_results.push_back(new SimplicialComplex());
+                std::thread th(AddSubsetVertices, l, r, thread_results.back());
+                threads.emplace_back(std::move(th));
+            }
+        }
+
+        for (auto& thread : threads) {
+            thread.join();
+        }
+
+        for (auto thread_result : thread_results) {
+            Merge(result, thread_result);
         }
     }
     return result;
