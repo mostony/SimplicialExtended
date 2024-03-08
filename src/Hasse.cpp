@@ -1,10 +1,12 @@
 #include "Hasse.h"
 
+#include <cassert>
 #include <queue>
 #include <set>
+#include <stdexcept>
+#include <unordered_map>
 
 Node* Hasse::GetNode(const std::vector<int>& node) {
-    // std::lock_guard<std::mutex> lock(mtx);
     if (!mapping_.count(node)) {
         mapping_[node] = std::unique_ptr<Node>(new Node(node));
     }
@@ -14,8 +16,8 @@ Node* Hasse::GetNode(const std::vector<int>& node) {
 void Hasse::AddArc(const std::vector<int>& from, const std::vector<int>& to) {
     auto parent = GetNode(from);
     auto son = GetNode(to);
-    parent->sons.push_back(to);
-    son->parents.push_back(from);
+    parent->upper.push_back(to);
+    son->lower.push_back(from);
     son->depth = parent->depth + 1;
 }
 
@@ -27,17 +29,17 @@ void Hasse::RemoveArc(const std::vector<int>& from,
                       const std::vector<int>& to) {
     auto parent = GetNode(from);
     auto son = GetNode(to);
-    for (auto it = parent->sons.begin(); it != parent->sons.end(); it++) {
+    for (auto it = parent->upper.begin(); it != parent->upper.end(); it++) {
         if (*it == to) {
-            parent->sons.erase(it);
+            parent->upper.erase(it);
             break;
         }
     }
 
     // remove parent from son list
-    for (auto it = son->parents.begin(); it != son->parents.end(); it++) {
+    for (auto it = son->lower.begin(); it != son->lower.end(); it++) {
         if (*it == from) {
-            son->parents.erase(it);
+            son->lower.erase(it);
             break;
         }
     }
@@ -52,19 +54,19 @@ void Hasse::RecursiveRemoveNode(const std::vector<int>& remove_node) {
         q.pop();
         auto node = GetNode(top);
 
-        for (auto nxt : node->sons) {
+        for (auto nxt : node->upper) {
             if (!used.count(nxt)) {
                 used.insert(nxt);
                 q.push(nxt);
             }
         }
 
-        for (auto prev : node->parents) {
+        for (auto prev : node->lower) {
             RemoveArc(prev, top);
         }
 
-        node->sons.clear();
-        node->parents.clear();
+        node->upper.clear();
+        node->lower.clear();
     }
 
     for (auto& node : used) {
@@ -114,7 +116,7 @@ void Hasse::DebugPrintAll() {
 std::vector<Node*> Hasse::GetMaxFaces() {
     std::vector<Node*> result;
     for (auto& [id, node] : mapping_) {
-        if (node->sons.empty()) {
+        if (node->upper.empty()) {
             result.push_back(node.get());
         }
     }
@@ -129,4 +131,61 @@ void Merge(Hasse& current, Hasse& other) {
     for (auto& [key, value] : other.mapping_) {
         current.mapping_[key] = std::move(value);
     }
+}
+
+std::vector<std::vector<int>> Hasse::Incidence(std::vector<int> node, int k) {
+    int p = node.size();
+    if (k < p) {
+        throw std::runtime_error("k < size of node");
+    }
+    std::queue<std::vector<int>> q;
+    std::map<std::vector<int>, int> distance;
+    q.push(node);
+    distance[node] = p;
+    std::vector<std::vector<int>> result;
+    while (!q.empty()) {
+        auto v = q.front();
+        q.pop();
+        int cur_distance = distance[v];
+        if (cur_distance == k) {
+            result.emplace_back(v);
+            continue;
+        }
+        for (auto nxt : GetNode(v)->upper) {
+            if (!distance.count(nxt)) {
+                distance[nxt] = cur_distance + 1;
+                q.push(nxt);
+            }
+        }
+    }
+    return result;
+}
+
+std::vector<std::vector<int>> Hasse::Degree(std::vector<int> node, int k) {
+    int p = node.size();
+    auto sources = Incidence(node, k);
+    std::queue<std::vector<int>> q;
+    std::map<std::vector<int>, int> distance;
+    for (auto source : sources) {
+        assert(source.size() == k);
+        q.push(source);
+        distance[source] = k;
+    }
+    std::vector<std::vector<int>> result;
+    while (!q.empty()) {
+        auto v = q.front();
+        q.pop();
+        int cur_distance = distance[v];
+        if (cur_distance == p) {
+            result.emplace_back(v);
+            continue;
+        }
+        for (auto nxt : GetNode(v)->lower) {
+            if (!distance.count(nxt)) {
+                distance[nxt] = cur_distance - 1;
+                q.push(nxt);
+            }
+        }
+    }
+    return result;
 }

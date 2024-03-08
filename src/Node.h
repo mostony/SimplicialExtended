@@ -1,24 +1,20 @@
 #pragma once
 
 #include <iostream>
-#include <memory>
 #include <vector>
 
 struct Node {
     int depth = 0;
     // TODO change on Node*
-    std::vector<std::vector<int>> sons,
-        parents;
+    std::vector<std::vector<int>> upper, lower;
     std::vector<int> data;
     int rank = 0;
 
     Node() {}
 
-    Node(const std::vector<int> &node) {
-        data = node;
-    }
+    Node(const std::vector<int>& node) { data = node; }
 
-    static void PrintVec(const std::vector<int> &vec) {
+    static void PrintVec(const std::vector<int>& vec) {
         std::cerr << "{";
         for (int i = 0; i < vec.size(); i++) {
             if (i) {
@@ -35,14 +31,14 @@ struct Node {
         std::cerr << "\n";
 
         std::cerr << "sons : ";
-        for (auto x : sons) {
+        for (auto x : upper) {
             PrintVec(x);
             std::cerr << " ";
         }
         std::cerr << "\n";
 
-        std::cerr << "parents : ";
-        for (auto x : parents) {
+        std::cerr << "lower : ";
+        for (auto x : lower) {
             PrintVec(x);
             std::cerr << " ";
         }

@@ -1,10 +1,7 @@
 #pragma once
 
-#include <cassert>
 #include <map>
 #include <memory>
-#include <mutex>
-#include <thread>
 #include <vector>
 
 #include "Node.h"
@@ -13,30 +10,34 @@ class Hasse {
    public:
     void DebugPrintAll();
 
-    void AddArc(const std::vector<int> &from, const std::vector<int> &to);
+    void AddArc(const std::vector<int>& from, const std::vector<int>& to);
 
     /// remove node and all upper node
     /// that can reach. In other words all upper sets
-    void RemoveNode(const std::vector<int> &remove_node);
+    void RemoveNode(const std::vector<int>& remove_node);
 
-    void RemoveArc(const std::vector<int> &from, const std::vector<int> &to);
+    void RemoveArc(const std::vector<int>& from, const std::vector<int>& to);
 
     // add node and all subsets
-    void RecursiveAddNode(const std::vector<int> &add_node);
+    void RecursiveAddNode(const std::vector<int>& add_node);
 
     /// use mapping to get node. If node not in mapping
     /// then create node. Return ptr to Node
-    Node *GetNode(const std::vector<int> &node);
+    Node* GetNode(const std::vector<int>& node);
 
     // TODO: mb UB
-    std::vector<Node *> GetMaxFaces();
+    std::vector<Node*> GetMaxFaces();
 
+    /// return number of nodes
     int Size();
 
-    friend void Merge(Hasse &current, Hasse &other);
+    friend void Merge(Hasse& current, Hasse& other);
+
+    std::vector<std::vector<int>> Incidence(std::vector<int> node, int k);
+
+    std::vector<std::vector<int>> Degree(std::vector<int> node, int k);
 
    private:
-    void RecursiveRemoveNode(const std::vector<int> &node);
-    // mutable std::mutex mtx;
+    void RecursiveRemoveNode(const std::vector<int>& node);
     std::map<std::vector<int>, std::unique_ptr<Node>> mapping_;
 };

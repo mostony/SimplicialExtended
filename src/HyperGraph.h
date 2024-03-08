@@ -8,9 +8,9 @@ class HyperGraph {
    public:
     typedef int32_t Vertex;
 
-    void AddEdge(const std::vector<Vertex> &edge);
+    void AddEdge(const std::vector<Vertex>& edge);
 
-    void RemoveEdge(const std::vector<Vertex> &edge);
+    void RemoveEdge(const std::vector<Vertex>& edge);
 
     void Debug();
 

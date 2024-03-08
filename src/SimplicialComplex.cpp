@@ -21,6 +21,16 @@ void SimplicialComplex::AddArc(const std::vector<int>& from,
     hasse_.AddArc(from, to);
 }
 
+std::vector<std::vector<int>> SimplicialComplex::Incidence(
+    std::vector<int> node, int k) {
+    return hasse_.Incidence(node, k);
+}
+
+std::vector<std::vector<int>> SimplicialComplex::Degree(std::vector<int> node,
+                                                        int k) {
+    return hasse_.Degree(node, k);
+}
+
 void AddCofaces(const std::vector<std::vector<int>>& g, int depth,
                 int max_depth, std::vector<int> cur_node,
                 std::vector<int> neighbors, SimplicialComplex* simpl) {
@@ -136,9 +146,9 @@ SimplicialComplex* SimplicialComplex::CreateCliqueGraph(
 
                 for (auto middle : cur_layer) {
                     auto middle_node = thread_result->hasse_.GetNode(middle);
-                    for (auto sigma1 : middle_node->sons) {
+                    for (auto sigma1 : middle_node->upper) {
                         int v1 = sigma1.back();
-                        for (auto sigma2 : middle_node->sons) {
+                        for (auto sigma2 : middle_node->upper) {
                             int v2 = sigma2.back();
                             if (v1 > v2 && g[v1][v2]) {
                                 auto new_data = sigma1;
