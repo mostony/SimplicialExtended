@@ -4,7 +4,6 @@
 #include <queue>
 #include <set>
 #include <stdexcept>
-#include <unordered_map>
 
 Node* Hasse::GetNode(const std::vector<int>& node) {
     if (!mapping_.count(node)) {
@@ -14,11 +13,10 @@ Node* Hasse::GetNode(const std::vector<int>& node) {
 }
 
 void Hasse::AddArc(const std::vector<int>& from, const std::vector<int>& to) {
-    auto parent = GetNode(from);
-    auto son = GetNode(to);
-    parent->upper.push_back(to);
-    son->lower.push_back(from);
-    son->depth = parent->depth + 1;
+    auto low = GetNode(from);
+    auto up = GetNode(to);
+    low->upper.push_back(to);
+    up->lower.push_back(from);
 }
 
 void Hasse::RemoveNode(const std::vector<int>& node) {
@@ -27,19 +25,18 @@ void Hasse::RemoveNode(const std::vector<int>& node) {
 
 void Hasse::RemoveArc(const std::vector<int>& from,
                       const std::vector<int>& to) {
-    auto parent = GetNode(from);
-    auto son = GetNode(to);
-    for (auto it = parent->upper.begin(); it != parent->upper.end(); it++) {
+    auto low = GetNode(from);
+    auto up = GetNode(to);
+    for (auto it = low->upper.begin(); it != low->upper.end(); it++) {
         if (*it == to) {
-            parent->upper.erase(it);
+            low->upper.erase(it);
             break;
         }
     }
 
-    // remove parent from son list
-    for (auto it = son->lower.begin(); it != son->lower.end(); it++) {
+    for (auto it = up->lower.begin(); it != up->lower.end(); it++) {
         if (*it == from) {
-            son->lower.erase(it);
+            up->lower.erase(it);
             break;
         }
     }
@@ -54,14 +51,14 @@ void Hasse::RecursiveRemoveNode(const std::vector<int>& remove_node) {
         q.pop();
         auto node = GetNode(top);
 
-        for (auto nxt : node->upper) {
+        for (const auto& nxt : node->upper) {
             if (!used.count(nxt)) {
                 used.insert(nxt);
                 q.push(nxt);
             }
         }
 
-        for (auto prev : node->lower) {
+        for (const auto& prev : node->lower) {
             RemoveArc(prev, top);
         }
 
@@ -69,7 +66,7 @@ void Hasse::RecursiveRemoveNode(const std::vector<int>& remove_node) {
         node->lower.clear();
     }
 
-    for (auto& node : used) {
+    for (const auto& node : used) {
         mapping_.erase(node);
     }
 }
@@ -96,20 +93,14 @@ void Hasse::RecursiveAddNode(const std::vector<int>& add_node) {
             next.erase(next.begin() + i);
 
             bool was_before = mapping_.count(next);
-            auto lower = GetNode(next);
+            auto low = GetNode(next);
 
-            AddArc(lower->data, top);
+            AddArc(low->data, top);
 
             if (!was_before) {
                 q.push(next);
             }
         }
-    }
-}
-
-void Hasse::DebugPrintAll() {
-    for (auto& [id, node] : mapping_) {
-        node->Debug();
     }
 }
 

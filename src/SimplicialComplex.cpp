@@ -1,15 +1,11 @@
 #include "SimplicialComplex.h"
 
-void SimplicialComplex::AddComplex(std::vector<VertexId> complex) {
+void SimplicialComplex::AddComplex(std::vector<int> complex) {
     hasse_.RecursiveAddNode(complex);
 }
 
-void SimplicialComplex::RemoveComplex(std::vector<VertexId> complex) {
+void SimplicialComplex::RemoveComplex(std::vector<int> complex) {
     hasse_.RemoveNode(complex);
-}
-
-void SimplicialComplex::Debug() {
-    hasse_.DebugPrintAll();
 }
 
 int SimplicialComplex::HasseSize() {
@@ -186,7 +182,7 @@ SimplicialComplex* SimplicialComplex::CreateCliqueGraph(
     return result;
 }
 
-std::vector<std::vector<int>> SimplicialComplex::GetMaxFaces() {
+std::vector<std::vector<int>> SimplicialComplex::GetMaxSimplices() {
     auto data = hasse_.GetMaxFaces();
     std::vector<std::vector<int>> result;
     for (size_t i = 0; i < data.size(); i++) {

@@ -6,13 +6,9 @@
 
 class HyperGraph {
    public:
-    typedef int32_t Vertex;
+    void AddEdge(const std::vector<int>& edge);
 
-    void AddEdge(const std::vector<Vertex>& edge);
-
-    void RemoveEdge(const std::vector<Vertex>& edge);
-
-    void Debug();
+    void RemoveEdge(const std::vector<int>& edge);
 
    private:
     Hasse hasse_;

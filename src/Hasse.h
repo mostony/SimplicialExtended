@@ -8,17 +8,14 @@
 
 class Hasse {
    public:
-    void DebugPrintAll();
-
     void AddArc(const std::vector<int>& from, const std::vector<int>& to);
 
-    /// remove node and all upper node
-    /// that can reach. In other words all upper sets
+    /// remove node and all upper nodes
     void RemoveNode(const std::vector<int>& remove_node);
 
     void RemoveArc(const std::vector<int>& from, const std::vector<int>& to);
 
-    // add node and all subsets
+    // add node and all lower nodes
     void RecursiveAddNode(const std::vector<int>& add_node);
 
     /// use mapping to get node. If node not in mapping
@@ -31,6 +28,7 @@ class Hasse {
     /// return number of nodes
     int Size();
 
+    /// merge two non intersecting Hasse diagrams
     friend void Merge(Hasse& current, Hasse& other);
 
     std::vector<std::vector<int>> Incidence(std::vector<int> node, int k);
