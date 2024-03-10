@@ -9,7 +9,6 @@
 
 #include "Hasse.h"
 
-// TODO: inheritance from Hasse
 class CombinatorialComplex {
    public:
     int HasseSize();

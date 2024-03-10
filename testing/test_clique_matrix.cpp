@@ -1,13 +1,12 @@
-#include <array>
 #include <fstream>
 #include <iostream>
 
-#include "src/SimplicialComplex.h"
-#include "testing/generator.h"
+#include "../src/SimplicialComplex.h"
+#include "generator.h"
 
 // Print only max cliques
 void PrintCliques(SimplicialComplex& simpl) {
-    auto cliques = simpl.GetMaxFaces();
+    auto cliques = simpl.GetMaxSimplices();
     for (auto max_cliq : cliques) {
         std::cerr << "{";
         bool is_start = true;
