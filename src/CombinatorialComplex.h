@@ -13,7 +13,7 @@ class CombinatorialComplex {
    public:
     int HasseSize();
 
-    void Build(std::vector<std::vector<int>> data, std::vector<int> rank) {}
+    void Build(const std::vector<std::vector<int>>& data);
 
     std::vector<std::vector<int>> Incidence(std::vector<int> node, int k);
 

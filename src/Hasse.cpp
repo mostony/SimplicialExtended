@@ -130,21 +130,21 @@ std::vector<std::vector<int>> Hasse::Incidence(std::vector<int> node, int k) {
         throw std::runtime_error("k < size of node");
     }
     std::queue<std::vector<int>> q;
-    std::map<std::vector<int>, int> distance;
+    std::set<std::vector<int>> visited;
+
     q.push(node);
-    distance[node] = p;
+    visited.insert(node);
     std::vector<std::vector<int>> result;
     while (!q.empty()) {
         auto v = q.front();
         q.pop();
-        int cur_distance = distance[v];
-        if (cur_distance == k) {
+        if (GetNode(v)->rank == k) {
             result.emplace_back(v);
             continue;
         }
         for (auto nxt : GetNode(v)->upper) {
-            if (!distance.count(nxt)) {
-                distance[nxt] = cur_distance + 1;
+            if (!visited.count(nxt)) {
+                visited.insert(nxt);
                 q.push(nxt);
             }
         }
@@ -156,24 +156,23 @@ std::vector<std::vector<int>> Hasse::Degree(std::vector<int> node, int k) {
     int p = node.size();
     auto sources = Incidence(node, k);
     std::queue<std::vector<int>> q;
-    std::map<std::vector<int>, int> distance;
+    std::set<std::vector<int>> visited;
     for (auto source : sources) {
         assert(source.size() == k);
         q.push(source);
-        distance[source] = k;
+        visited.insert(source);
     }
     std::vector<std::vector<int>> result;
     while (!q.empty()) {
         auto v = q.front();
         q.pop();
-        int cur_distance = distance[v];
-        if (cur_distance == p) {
+        if (GetNode(v)->rank == p) {
             result.emplace_back(v);
             continue;
         }
         for (auto nxt : GetNode(v)->lower) {
-            if (!distance.count(nxt)) {
-                distance[nxt] = cur_distance - 1;
+            if (!visited.count(nxt)) {
+                visited.insert(nxt);
                 q.push(nxt);
             }
         }
