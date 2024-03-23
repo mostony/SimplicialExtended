@@ -1,10 +1,5 @@
 #pragma once
 
-#include <algorithm>
-#include <exception>
-#include <map>
-#include <thread>
-#include <utility>
 #include <vector>
 
 #include "Hasse.h"

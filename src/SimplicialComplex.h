@@ -1,15 +1,9 @@
 #pragma once
 
-#include <algorithm>
-#include <exception>
-#include <map>
 #include <thread>
-#include <utility>
 #include <vector>
-
 #include "Hasse.h"
 
-// TODO: inheritance from Hasse
 class SimplicialComplex {
    public:
     void AddComplex(std::vector<int> complex);
@@ -33,6 +27,9 @@ class SimplicialComplex {
 
     // TODO: maybe remove self node from degree???
     std::vector<std::vector<int>> Degree(std::vector<int> node, int k);
+    int BettiNumber(int k);
+
+    double Closeness(std::vector<int> node, int max_rank);
 
    private:
     Hasse hasse_;

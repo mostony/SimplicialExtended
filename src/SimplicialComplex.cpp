@@ -27,6 +27,14 @@ std::vector<std::vector<int>> SimplicialComplex::Degree(std::vector<int> node,
     return hasse_.Degree(node, k);
 }
 
+int SimplicialComplex::BettiNumber(int k) {
+    return hasse_.BettiNumber(k);
+}
+
+double SimplicialComplex::Closeness(std::vector<int> node, int max_rank) {
+    return hasse_.Closeness(node, max_rank);
+}
+
 void AddCofaces(const std::vector<std::vector<int>>& g, int depth,
                 int max_depth, std::vector<int> cur_node,
                 std::vector<int> neighbors, SimplicialComplex* simpl) {
@@ -187,7 +195,6 @@ std::vector<std::vector<int>> SimplicialComplex::GetMaxSimplices() {
     std::vector<std::vector<int>> result;
     for (size_t i = 0; i < data.size(); i++) {
         result.push_back(data[i]->data);
-        std::sort(result.back().begin(), result.back().end());
     }
     return result;
 }

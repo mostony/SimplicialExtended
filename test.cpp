@@ -4,7 +4,7 @@
 #include "src/CombinatorialComplex.h"
 #include "src/SimplicialComplex.h"
 
-TEST_CASE("Simplicial incidence test") {
+TEST_CASE("Simplicial Complex incidence") {
     SimplicialComplex simpl;
     simpl.AddComplex({1, 2, 3, 4});
     simpl.AddComplex({1, 5, 6});
@@ -38,7 +38,7 @@ TEST_CASE("Simplicial incidence test") {
     }
 }
 
-TEST_CASE("Simplicial degree test") {
+TEST_CASE("Simplicial Complex degree") {
     SimplicialComplex simpl;
     simpl.AddComplex({1, 2, 3, 4});
     simpl.AddComplex({1, 5, 6});
@@ -70,7 +70,7 @@ TEST_CASE("Simplicial degree test") {
     }
 }
 
-TEST_CASE("Combinatorial Complex incindent test") {
+TEST_CASE("Combinatorial Complex incidence") {
     CombinatorialComplex comb;
     comb.Build(
         {{1}, {2}, {3}, {4}, {1, 2}, {1, 4}, {2, 4}, {1, 2, 3}, {2, 3, 4}});
@@ -91,7 +91,7 @@ TEST_CASE("Combinatorial Complex incindent test") {
     }
 }
 
-TEST_CASE("Combinatorial Complex degree test") {
+TEST_CASE("Combinatorial Complex degree") {
     CombinatorialComplex comb;
     comb.Build(
         {{1}, {2}, {3}, {4}, {1, 2}, {1, 4}, {2, 4}, {1, 2, 3}, {2, 3, 4}});
@@ -110,4 +110,33 @@ TEST_CASE("Combinatorial Complex degree test") {
                      Catch::Matchers::UnorderedEquals(
                          std::vector<std::vector<int>>({{1}, {2}, {3}})));
     }
+}
+
+TEST_CASE("Betti number") {
+    SimplicialComplex simpl;
+    simpl.AddComplex({1, 2, 3});
+    simpl.AddComplex({3, 4});
+    simpl.AddComplex({4, 5, 6});
+    simpl.AddComplex({4, 5, 7});
+    simpl.AddComplex({6, 7});
+    simpl.AddComplex({2, 7});
+    simpl.RemoveComplex({1, 2});
+
+    REQUIRE(simpl.BettiNumber(0) == 1);
+    REQUIRE(simpl.BettiNumber(1) == 2);
+    REQUIRE(simpl.BettiNumber(2) == 0);
+}
+
+TEST_CASE("Simplicial closeness") {
+    SimplicialComplex simpl;
+    simpl.AddComplex({1, 2, 3, 4});
+    simpl.AddComplex({1, 5, 6});
+
+    // max_rank = 2
+    REQUIRE(simpl.Closeness({1}, 2) == Catch::Approx(1.0));
+    REQUIRE(simpl.Closeness({2}, 2) == Catch::Approx(0.71428571428));
+    REQUIRE(simpl.Closeness({5}, 2) == Catch::Approx(0.625));
+
+    REQUIRE(simpl.Closeness({1}, 3) == Catch::Approx(1));
+    REQUIRE(simpl.Closeness({1}, 4) == Catch::Approx(0));
 }

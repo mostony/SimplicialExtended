@@ -29,7 +29,8 @@ add_executable(tests test.cpp src/Hasse.cpp
         src/HyperGraph.cpp
         src/Node.cpp
         src/SimplicialComplex.cpp
-        src/CombinatorialComplex.cpp)
+        src/CombinatorialComplex.cpp
+        src/Graph.cpp)
 
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 
@@ -39,4 +40,5 @@ pybind11_add_module(simpl
         src/HyperGraph.cpp
         src/Node.cpp
         src/SimplicialComplex.cpp
-        src/CombinatorialComplex.cpp)
+        src/CombinatorialComplex.cpp
+        src/Graph.cpp)
