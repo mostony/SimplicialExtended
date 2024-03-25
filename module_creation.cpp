@@ -16,21 +16,32 @@ PYBIND11_MODULE(simpl, m) {
         .def("RemoveComplex", &SimplicialComplex::RemoveComplex)
         .def("Incidence", &SimplicialComplex::Incidence)
         .def("Degree", &SimplicialComplex::Degree)
-        .def("BettiNumber", &SimplicialComplex::BettiNumber);
+        .def("BettiNumber", &SimplicialComplex::BettiNumber)
+        .def("Closeness", &SimplicialComplex::Closeness);
 
     py::class_<HyperGraph>(m, "HyperGraph")
         .def(py::init<>())
         .def("AddEdge", &HyperGraph::AddEdge)
-        .def("RemoveEdge", &HyperGraph::RemoveEdge);
+        .def("RemoveEdge", &HyperGraph::RemoveEdge)
+        .def("Incidence", &HyperGraph::Incidence)
+        .def("Degree", &HyperGraph::Degree)
+        .def("BettiNumber", &HyperGraph::BettiNumber)
+        .def("Closeness", &HyperGraph::Closeness);
 
     py::class_<Graph>(m, "Graph")
         .def(py::init<>())
         .def("AddEdge", &Graph::AddEdge)
-        .def("RemoveEdge", &Graph::RemoveEdge);
+        .def("RemoveEdge", &Graph::RemoveEdge)
+        .def("Incidence", &Graph::Incidence)
+        .def("Degree", &Graph::Degree)
+        .def("BettiNumber", &Graph::BettiNumber)
+        .def("Closeness", &Graph::Closeness);
 
     py::class_<CombinatorialComplex>(m, "CombinatorialComplex")
         .def(py::init<>())
         .def("Build", &CombinatorialComplex::Build)
         .def("Incidence", &CombinatorialComplex::Incidence)
-        .def("Degree", &CombinatorialComplex::Degree);
+        .def("Degree", &CombinatorialComplex::Degree)
+        .def("BettiNumber", &CombinatorialComplex::BettiNumber)
+        .def("Closeness", &CombinatorialComplex::Closeness);
 }

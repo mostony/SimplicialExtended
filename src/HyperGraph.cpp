@@ -15,3 +15,20 @@ void HyperGraph::RemoveEdge(const std::vector<int>& edge) {
         hasse_.RemoveArc(lower_node, upper_node);
     }
 }
+
+std::vector<std::vector<int>> HyperGraph::Incidence(std::vector<int> node,
+                                                    int k) {
+    return hasse_.Incidence(node, k);
+}
+
+std::vector<std::vector<int>> HyperGraph::Degree(std::vector<int> node, int k) {
+    return hasse_.Degree(node, k);
+}
+
+int HyperGraph::BettiNumber(int k) {
+    return hasse_.BettiNumber(k);
+}
+
+double HyperGraph::Closeness(std::vector<int> node, int max_rank) {
+    return hasse_.Closeness(node, max_rank);
+}

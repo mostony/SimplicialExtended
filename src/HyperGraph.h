@@ -10,6 +10,14 @@ class HyperGraph {
 
     void RemoveEdge(const std::vector<int>& edge);
 
+    std::vector<std::vector<int>> Incidence(std::vector<int> node, int k);
+
+    std::vector<std::vector<int>> Degree(std::vector<int> node, int k);
+
+    int BettiNumber(int k);
+
+    double Closeness(std::vector<int> node, int max_rank);
+
    private:
     Hasse hasse_;
 };

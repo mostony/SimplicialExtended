@@ -14,6 +14,10 @@ class CombinatorialComplex {
 
     std::vector<std::vector<int>> Degree(std::vector<int> node, int k);
 
+    int BettiNumber(int k);
+
+    double Closeness(std::vector<int> node, int max_rank);
+
    private:
     Hasse hasse_;
 };

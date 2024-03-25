@@ -15,7 +15,7 @@ class SimplicialComplex {
     /// merge two non intersecting SimplicialComplex
     friend void Merge(SimplicialComplex* current, SimplicialComplex* other);
 
-    // TODO: change method to enum
+    /// TODO: change method to enum
     static SimplicialComplex* CreateCliqueGraph(
         const std::vector<std::vector<int>>& g, int k, int method = 0,
         int total_threads = -1);
@@ -25,7 +25,7 @@ class SimplicialComplex {
 
     std::vector<std::vector<int>> Incidence(std::vector<int> node, int k);
 
-    // TODO: maybe remove self node from degree???
+    /// TODO: maybe remove self node from degree???
     std::vector<std::vector<int>> Degree(std::vector<int> node, int k);
     int BettiNumber(int k);
 

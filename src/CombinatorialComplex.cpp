@@ -31,3 +31,11 @@ std::vector<std::vector<int>> CombinatorialComplex::Degree(
     std::vector<int> node, int k) {
     return hasse_.Degree(node, k);
 }
+
+int CombinatorialComplex::BettiNumber(int k) {
+    return hasse_.BettiNumber(k);
+}
+
+double CombinatorialComplex::Closeness(std::vector<int> node, int max_rank) {
+    return hasse_.Closeness(node, max_rank);
+}

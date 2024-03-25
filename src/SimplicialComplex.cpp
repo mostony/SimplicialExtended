@@ -81,7 +81,6 @@ SimplicialComplex* SimplicialComplex::CreateCliqueGraph(
 
     auto result = new SimplicialComplex();
     if (total_threads == -1) {
-        // TODO I'm not sure about this line
         total_threads = std::thread::hardware_concurrency();
     }
 

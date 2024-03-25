@@ -6,8 +6,8 @@
 #include <vector>
 #include "Node.h"
 
-// TODO: add dimension (max rank I guess)
-// TODO: add method that return all simplices
+/// TODO: add dimension (max rank I guess)
+/// TODO: add method that return all simplices
 class Hasse {
    public:
     void AddArc(const std::vector<int>& from, const std::vector<int>& to);
@@ -59,10 +59,10 @@ class Hasse {
 
     std::map<int, std::set<Node*>> nodes_with_fixed_rank_;
 
-    // TODO: fix when removing node
-    // in this case can't use vector or need to rebuild
-    // 1) add flag to cache
-    // 2) change nodes_with_fixed_rank_ (when no edges to it)
+    /// TODO: fix when removing node
+    /// in this case can't use vector or need to rebuild
+    /// 1) add flag to cache
+    /// 2) change nodes_with_fixed_rank_ (when no edges to it)
     std::map<std::pair<int, int>, std::vector<std::vector<int>>>
         cache_incidence_;
     std::map<std::pair<int, int>, std::vector<std::vector<int>>> cache_degree_;
