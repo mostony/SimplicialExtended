@@ -24,8 +24,9 @@ public:
   /// then create node. Return ptr to Node
   Node *GetNode(const std::vector<int> &node);
 
-  // TODO: mb UB
-  std::vector<Node *> GetMaxFaces();
+  std::vector<std::vector<int>> GetMaxFaces();
+
+  std::vector<std::vector<int>> GetAllElements();
 
   /// return number of nodes
   int Size();

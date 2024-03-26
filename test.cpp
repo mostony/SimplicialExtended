@@ -156,3 +156,15 @@ TEST_CASE("Graph Betweenness") {
   // max_rank = 2
   REQUIRE(graph.Betweenness({1}, 2) == Catch::Approx(0.65));
 }
+
+TEST_CASE("KEKW") {
+  SimplicialComplex simpl;
+  simpl.AddComplex({1, 2, 3});
+  simpl.AddComplex({3, 4});
+  simpl.AddComplex({4, 5, 6});
+  simpl.AddComplex({4, 5, 7});
+  simpl.AddComplex({6, 7});
+  simpl.AddComplex({2, 7});
+  simpl.RemoveComplex({1, 2});
+  simpl.GetMaxSimplices();
+}

@@ -34,3 +34,7 @@ double HyperGraph::Closeness(std::vector<int> node, int max_rank) {
 double HyperGraph::Betweenness(std::vector<int> node, int max_rank) {
   return hasse_.Closeness(node, max_rank);
 }
+
+std::vector<std::vector<int>> HyperGraph::GetEdges() {
+  return hasse_.GetMaxFaces();
+}

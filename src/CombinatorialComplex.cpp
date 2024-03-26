@@ -39,3 +39,7 @@ double CombinatorialComplex::Closeness(std::vector<int> node, int max_rank) {
 double CombinatorialComplex::Betweenness(std::vector<int> node, int max_rank) {
   return hasse_.Betweenness(node, max_rank);
 }
+
+std::vector<std::vector<int>> CombinatorialComplex::GetSubsets() {
+  return hasse_.GetMaxFaces();
+}

@@ -20,7 +20,7 @@ void Hasse::AddArc(const std::vector<int> &from, const std::vector<int> &to) {
   up->lower.push_back(from);
 }
 
-// TODO: add remove from mapping
+/// TODO: add remove from mapping
 void Hasse::RemoveNode(const std::vector<int> &node) {
   RecursiveRemoveNode(node);
 }
@@ -48,6 +48,7 @@ void Hasse::RecursiveRemoveNode(const std::vector<int> &remove_node) {
   std::queue<std::vector<int>> q;
   std::set<std::vector<int>> used;
   q.push(remove_node);
+  used.insert(remove_node);
   while (!q.empty()) {
     auto top = q.front();
     q.pop();
@@ -61,7 +62,8 @@ void Hasse::RecursiveRemoveNode(const std::vector<int> &remove_node) {
       }
     }
 
-    for (const auto &prev : node->lower) {
+    while (!node->lower.empty()) {
+      const auto &prev = node->lower.back();
       RemoveArc(prev, top);
     }
 
@@ -101,13 +103,12 @@ void Hasse::RecursiveAddNode(const std::vector<int> &add_node) {
     auto top = q.front();
     q.pop();
 
-    // node is leaf
-    if (top.size() == 1) {
+    auto node = GetNode(top);
+    if (node->rank == 0) {
       continue;
     }
-    auto node = GetNode(top);
 
-    for (size_t i = 0; i < top.size(); i++) {
+    for (size_t i = 0; i < node->rank; i++) {
       auto next = top;
       next.erase(next.begin() + i);
 
@@ -123,12 +124,20 @@ void Hasse::RecursiveAddNode(const std::vector<int> &add_node) {
   }
 }
 
-std::vector<Node *> Hasse::GetMaxFaces() {
-  std::vector<Node *> result;
+std::vector<std::vector<int>> Hasse::GetMaxFaces() {
+  std::vector<std::vector<int>> result;
   for (auto &[id, node] : mapping_) {
     if (node->upper.empty()) {
-      result.push_back(node.get());
+      result.push_back(node->data);
     }
+  }
+  return result;
+}
+
+std::vector<std::vector<int>> Hasse::GetAllElements() {
+  std::vector<std::vector<int>> result;
+  for (auto &[id, node] : mapping_) {
+    result.push_back(node->data);
   }
   return result;
 }
@@ -194,7 +203,7 @@ int Hasse::SNF(std::vector<std::vector<int>> mat) {
   }
   for (auto row : mat) {
     for (auto elem : row) {
-      // module 2
+      // modulo 2
       assert(0 <= elem && elem <= 1);
     }
   }
@@ -254,7 +263,7 @@ int Hasse::SNF(std::vector<std::vector<int>> mat) {
 }
 
 int Hasse::BettiNumber(int k) {
-  // TODO: add checks
+  // TODO: add runtime checks
   int kernel = 0;
   if (k == 0) {
     kernel = this->nodes_with_fixed_rank_[1].size();
@@ -300,28 +309,6 @@ std::vector<std::vector<int>> Hasse::Incidence(std::vector<int> node, int k) {
     }
   }
   return result;
-
-  // std::queue<std::vector<int>> q;
-  // std::set<std::vector<int>> visited;
-
-  // q.push(node);
-  // visited.insert(node);
-  // std::vector<std::vector<int>> result;
-  // while (!q.empty()) {
-  //     auto v = q.front();
-  //     q.pop();
-  //     if (GetNode(v)->rank == k) {
-  //         result.emplace_back(v);
-  //         continue;
-  //     }
-  //     for (auto nxt : GetNode(v)->upper) {
-  //         if (!visited.count(nxt)) {
-  //             visited.insert(nxt);
-  //             q.push(nxt);
-  //         }
-  //     }
-  // }
-  // return result;
 }
 
 std::vector<std::vector<int>> Hasse::Degree(std::vector<int> node, int k) {

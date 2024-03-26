@@ -18,6 +18,8 @@ public:
 
   double Betweenness(std::vector<int> node, int max_rank);
 
+  std::vector<std::vector<int>> GetEdges();
+
 private:
   Hasse hasse_;
 };

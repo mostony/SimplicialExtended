@@ -22,3 +22,5 @@ double Graph::Closeness(std::vector<int> node, int max_rank) {
 double Graph::Betweenness(std::vector<int> node, int max_rank) {
   return hasse_.Betweenness(node, max_rank);
 }
+
+std::vector<std::vector<int>> Graph::GetEdges() { return hasse_.GetMaxFaces(); }

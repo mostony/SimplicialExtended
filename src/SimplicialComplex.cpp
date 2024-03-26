@@ -188,12 +188,7 @@ SimplicialComplex::CreateCliqueGraph(const std::vector<std::vector<int>> &g,
 }
 
 std::vector<std::vector<int>> SimplicialComplex::GetMaxSimplices() {
-  auto data = hasse_.GetMaxFaces();
-  std::vector<std::vector<int>> result;
-  for (size_t i = 0; i < data.size(); i++) {
-    result.push_back(data[i]->data);
-  }
-  return result;
+  return hasse_.GetMaxFaces();
 }
 
 void Merge(SimplicialComplex *current, SimplicialComplex *other) {

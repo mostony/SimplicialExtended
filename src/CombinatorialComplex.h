@@ -19,6 +19,8 @@ public:
   double Closeness(std::vector<int> node, int max_rank);
   double Betweenness(std::vector<int> node, int max_rank);
 
+  std::vector<std::vector<int>> GetSubsets();
+
 private:
   Hasse hasse_;
 };
