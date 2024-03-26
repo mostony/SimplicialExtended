@@ -3,11 +3,11 @@
 #include <vector>
 
 struct Node {
-    std::vector<std::vector<int>> upper, lower;
-    std::vector<int> data;
-    int rank = 0;
+  std::vector<std::vector<int>> upper, lower;
+  std::vector<int> data;
+  int rank = 0;
 
-    Node();
+  Node();
 
-    Node(const std::vector<int>& node);
+  Node(const std::vector<int> &node);
 };
