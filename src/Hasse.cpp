@@ -104,11 +104,11 @@ void Hasse::RecursiveAddNode(const std::vector<int> &add_node) {
     q.pop();
 
     auto node = GetNode(top);
-    if (node->rank == 0) {
+    if (node->size == 0) {
       continue;
     }
 
-    for (size_t i = 0; i < node->rank; i++) {
+    for (size_t i = 0; i < node->size; i++) {
       auto next = top;
       next.erase(next.begin() + i);
 
@@ -263,19 +263,20 @@ int Hasse::SNF(std::vector<std::vector<int>> mat) {
 }
 
 int Hasse::BettiNumber(int k) {
-  // TODO: add runtime checks
+  /// TODO: add runtime checks
+  /// TODO: check code
   int kernel = 0;
   if (k == 0) {
-    kernel = this->nodes_with_fixed_rank_[1].size();
+    kernel = this->nodes_with_fixed_rank_[0].size();
   } else {
-    auto inc = IncidenceMatrix(k, k + 1);
+    auto inc = IncidenceMatrix(k - 1, k);
     if (!inc.empty()) {
       kernel = (int)(inc[0].size()) - SNF(inc);
     }
   }
   int image = 0;
-  if (nodes_with_fixed_rank_[k + 2].size() != 0) {
-    auto inc = IncidenceMatrix(k + 1, k + 2);
+  if (nodes_with_fixed_rank_[k + 1].size() != 0) {
+    auto inc = IncidenceMatrix(k, k + 1);
     image = SNF(inc);
   }
   return kernel - image;
@@ -287,8 +288,9 @@ void Merge(Hasse &current, Hasse &other) {
   }
 }
 
-std::vector<std::vector<int>> Hasse::Incidence(std::vector<int> node, int k) {
-  int p = node.size();
+std::vector<std::vector<int>> Hasse::Incidence(const std::vector<int> &node,
+                                               int k) {
+  int p = GetNode(node)->rank;
   if (k < p) {
     throw std::runtime_error("k < size of node");
   }
@@ -311,8 +313,9 @@ std::vector<std::vector<int>> Hasse::Incidence(std::vector<int> node, int k) {
   return result;
 }
 
-std::vector<std::vector<int>> Hasse::Degree(std::vector<int> node, int k) {
-  int p = node.size();
+std::vector<std::vector<int>> Hasse::Degree(const std::vector<int> &node,
+                                            int k) {
+  int p = GetNode(node)->rank;
   std::vector<std::vector<int>> result;
   auto mat = DegreeMatrix(p, k);
 
@@ -329,31 +332,6 @@ std::vector<std::vector<int>> Hasse::Degree(std::vector<int> node, int k) {
     }
   }
   return result;
-
-  // auto sources = Incidence(node, k);
-  // std::queue<std::vector<int>> q;
-  // std::set<std::vector<int>> visited;
-  // for (auto source : sources) {
-  //     assert(source.size() == k);
-  //     q.push(source);
-  //     visited.insert(source);
-  // }
-  // std::vector<std::vector<int>> result;
-  // while (!q.empty()) {
-  //     auto v = q.front();
-  //     q.pop();
-  //     if (GetNode(v)->rank == p) {
-  //         result.emplace_back(v);
-  //         continue;
-  //     }
-  //     for (auto nxt : GetNode(v)->lower) {
-  //         if (!visited.count(nxt)) {
-  //             visited.insert(nxt);
-  //             q.push(nxt);
-  //         }
-  //     }
-  // }
-  // return result;
 }
 
 double Hasse::Closeness(std::vector<int> node, int max_rank) {

@@ -6,8 +6,6 @@
 #include <set>
 #include <vector>
 
-/// TODO: add dimension (max rank I guess)
-/// TODO: add method that return all simplices
 class Hasse {
 public:
   void AddArc(const std::vector<int> &from, const std::vector<int> &to);
@@ -44,9 +42,9 @@ public:
 
   int BettiNumber(int k);
 
-  std::vector<std::vector<int>> Incidence(std::vector<int> node, int k);
+  std::vector<std::vector<int>> Incidence(const std::vector<int> &node, int k);
 
-  std::vector<std::vector<int>> Degree(std::vector<int> node, int k);
+  std::vector<std::vector<int>> Degree(const std::vector<int> &node, int k);
 
   double Closeness(std::vector<int> node, int max_rank);
   double Betweenness(std::vector<int> node, int max_rank);
