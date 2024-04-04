@@ -1,11 +1,14 @@
 #include "SimplicialComplex.h"
+#include <algorithm>
 #include <thread>
 
-void SimplicialComplex::AddComplex(const std::vector<int> &complex) {
+void SimplicialComplex::AddComplex(std::vector<int> complex) {
+  std::sort(complex.begin(), complex.end());
   hasse_.RecursiveAddNode(complex);
 }
 
-void SimplicialComplex::RemoveComplex(const std::vector<int> &complex) {
+void SimplicialComplex::RemoveComplex(std::vector<int> complex) {
+  std::sort(complex.begin(), complex.end());
   hasse_.RemoveNode(complex);
 }
 

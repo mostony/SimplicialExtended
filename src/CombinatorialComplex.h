@@ -6,7 +6,7 @@
 
 class CombinatorialComplex : public AbstractModel {
 public:
-  void Build(const std::vector<std::vector<int>> &data);
+  void Build(std::vector<std::vector<int>> data);
 
   std::vector<std::vector<int>> GetSubsets();
 };

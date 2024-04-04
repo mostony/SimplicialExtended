@@ -5,9 +5,9 @@
 
 class SimplicialComplex : public AbstractModel {
 public:
-  void AddComplex(const std::vector<int> &complex);
+  void AddComplex(std::vector<int> complex);
 
-  void RemoveComplex(const std::vector<int> &complex);
+  void RemoveComplex(std::vector<int> complex);
 
   /// merge two non intersecting SimplicialComplex
   friend void Merge(SimplicialComplex *current, SimplicialComplex *other);

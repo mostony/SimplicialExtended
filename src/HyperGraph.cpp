@@ -1,6 +1,6 @@
 #include "HyperGraph.h"
 
-void HyperGraph::AddEdge(const std::vector<int> &edge) {
+void HyperGraph::AddEdge(std::vector<int> edge) {
   for (auto vertice : edge) {
     auto lower_node = std::vector<int>{vertice};
     auto upper_node = edge;
@@ -8,7 +8,7 @@ void HyperGraph::AddEdge(const std::vector<int> &edge) {
   }
 }
 
-void HyperGraph::RemoveEdge(const std::vector<int> &edge) {
+void HyperGraph::RemoveEdge(std::vector<int> edge) {
   for (auto vertice : edge) {
     auto lower_node = std::vector<int>{vertice};
     auto upper_node = edge;

@@ -33,6 +33,8 @@ public:
   friend void Merge(Hasse &current, Hasse &other);
 
   std::vector<std::vector<int>> IncidenceMatrix(int p, int k);
+
+  // a.k.a. line graph
   std::vector<std::vector<int>> DegreeMatrix(int p, int k);
 
   /// calculate SNF of mat module 2 and return

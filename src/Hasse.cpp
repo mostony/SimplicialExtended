@@ -6,7 +6,10 @@
 #include <set>
 #include <stdexcept>
 
+#include <algorithm>
+
 Node *Hasse::GetNode(const std::vector<int> &node) {
+  assert(is_sorted(node.begin(), node.end()));
   if (!mapping_.count(node)) {
     mapping_[node] = std::unique_ptr<Node>(new Node(node));
     nodes_with_fixed_rank_[mapping_[node]->rank].insert(mapping_[node].get());
@@ -448,7 +451,6 @@ double Hasse::Closeness(std::vector<int> node, int max_rank) {
       is_connected = false;
     }
   }
-  // TODO: if not connected equal zero ???
   if (!is_connected) {
     return 0.0;
   }
