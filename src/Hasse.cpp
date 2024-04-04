@@ -313,8 +313,12 @@ std::vector<std::vector<int>> Hasse::Incidence(const std::vector<int> &node,
   return result;
 }
 
-std::vector<std::vector<int>> Hasse::Degree(const std::vector<int> &node,
-                                            int k) {
+int Hasse::IncidenceDegree(const std::vector<int> &node, int k) {
+  return Incidence(node, k).size();
+}
+
+std::vector<std::vector<int>> Hasse::Adjacency(const std::vector<int> &node,
+                                               int k) {
   int p = GetNode(node)->rank;
   std::vector<std::vector<int>> result;
   auto mat = DegreeMatrix(p, k);
@@ -332,6 +336,10 @@ std::vector<std::vector<int>> Hasse::Degree(const std::vector<int> &node,
     }
   }
   return result;
+}
+
+int Hasse::Degree(const std::vector<int> &node, int k) {
+  return Adjacency(node, k).size();
 }
 
 double Hasse::Closeness(std::vector<int> node, int max_rank) {

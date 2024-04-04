@@ -11,8 +11,16 @@ std::vector<std::vector<int>> AbstractModel::Incidence(std::vector<int> node,
   return hasse_.Incidence(node, k);
 }
 
-std::vector<std::vector<int>> AbstractModel::Degree(std::vector<int> node,
-                                                    int k) {
+int AbstractModel::IncidenceDegree(std::vector<int> node, int k) {
+  return hasse_.IncidenceDegree(node, k);
+}
+
+std::vector<std::vector<int>> AbstractModel::Adjacency(std::vector<int> node,
+                                                       int k) {
+  return hasse_.Adjacency(node, k);
+}
+
+int AbstractModel::Degree(std::vector<int> node, int k) {
   return hasse_.Degree(node, k);
 }
 

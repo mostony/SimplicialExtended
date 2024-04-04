@@ -10,8 +10,10 @@ public:
   std::vector<std::vector<int>> GetMaxFaces();
 
   std::vector<std::vector<int>> Incidence(std::vector<int> node, int k);
+  int IncidenceDegree(std::vector<int> node, int k);
 
-  std::vector<std::vector<int>> Degree(std::vector<int> node, int k);
+  std::vector<std::vector<int>> Adjacency(std::vector<int> node, int k);
+  int Degree(std::vector<int> node, int k);
 
   int BettiNumber(int k);
 

@@ -17,6 +17,8 @@ TEST_CASE("Simplicial Complex incidence") {
     REQUIRE_THAT(incidence,
                  Catch::Matchers::UnorderedEquals(std::vector<std::vector<int>>(
                      {{1, 4}, {1, 3}, {1, 2}, {1, 6}, {1, 5}})));
+    auto incidence_degree = simpl.IncidenceDegree({1}, 1);
+    REQUIRE(incidence_degree == 5);
   }
 
   // v = 1, k = 2
@@ -25,6 +27,8 @@ TEST_CASE("Simplicial Complex incidence") {
     REQUIRE_THAT(incidence,
                  Catch::Matchers::UnorderedEquals(std::vector<std::vector<int>>(
                      {{1, 3, 4}, {1, 2, 4}, {1, 2, 3}, {1, 5, 6}})));
+    auto incidence_degree = simpl.IncidenceDegree({1}, 2);
+    REQUIRE(incidence_degree == 4);
   }
 
   // v = 1, k = 3
@@ -32,6 +36,8 @@ TEST_CASE("Simplicial Complex incidence") {
     auto incidence = simpl.Incidence({1}, 3);
     REQUIRE_THAT(incidence, Catch::Matchers::UnorderedEquals(
                                 std::vector<std::vector<int>>({{1, 2, 3, 4}})));
+    auto incidence_degree = simpl.IncidenceDegree({1}, 3);
+    REQUIRE(incidence_degree == 1);
   }
 }
 
@@ -42,27 +48,32 @@ TEST_CASE("Simplicial Complex degree") {
 
   // v = 1, k = 1
   {
-    auto degree = simpl.Degree({1}, 1);
-    REQUIRE_THAT(degree,
+    auto adjacency = simpl.Adjacency({1}, 1);
+    REQUIRE_THAT(adjacency,
                  Catch::Matchers::UnorderedEquals(std::vector<std::vector<int>>(
                      {{1}, {2}, {3}, {4}, {5}, {6}})));
+    auto degree = simpl.Degree({1}, 1);
+    REQUIRE(degree == 6);
   }
 
   // v = 1, k = 2
   {
-    auto degree = simpl.Degree({1}, 2);
-    REQUIRE_THAT(degree,
+    auto adjacency = simpl.Adjacency({1}, 2);
+    REQUIRE_THAT(adjacency,
                  Catch::Matchers::UnorderedEquals(std::vector<std::vector<int>>(
                      {{1}, {2}, {3}, {4}, {5}, {6}})));
+    auto degree = simpl.Degree({1}, 2);
+    REQUIRE(degree == 6);
   }
 
   // v = 1, k = 3
   {
-    auto degree = simpl.Degree({1}, 3);
-    sort(degree.begin(), degree.end());
-    REQUIRE_THAT(degree,
+    auto adjacency = simpl.Adjacency({1}, 3);
+    REQUIRE_THAT(adjacency,
                  Catch::Matchers::UnorderedEquals(
                      std::vector<std::vector<int>>({{1}, {2}, {3}, {4}})));
+    auto degree = simpl.Degree({1}, 3);
+    REQUIRE(degree == 4);
   }
 }
 
@@ -77,6 +88,8 @@ TEST_CASE("Combinatorial Complex incidence") {
     REQUIRE_THAT(incidence,
                  Catch::Matchers::UnorderedEquals(
                      std::vector<std::vector<int>>({{1, 2}, {1, 4}})));
+    auto incidence_degree = comb.IncidenceDegree({1}, 1);
+    REQUIRE(incidence_degree == 2);
   }
 
   // v = 1, k = 2
@@ -84,6 +97,8 @@ TEST_CASE("Combinatorial Complex incidence") {
     auto incidence = comb.Incidence({1}, 2);
     REQUIRE_THAT(incidence, Catch::Matchers::UnorderedEquals(
                                 std::vector<std::vector<int>>({{1, 2, 3}})));
+    auto incidence_degree = comb.IncidenceDegree({1}, 2);
+    REQUIRE(incidence_degree == 1);
   }
 }
 
@@ -94,16 +109,22 @@ TEST_CASE("Combinatorial Complex degree") {
 
   // v = 1, k = 1
   {
+    auto adjacency = comb.Adjacency({1}, 1);
+    REQUIRE_THAT(adjacency,
+                 Catch::Matchers::UnorderedEquals(
+                     std::vector<std::vector<int>>({{1}, {2}, {4}})));
     auto degree = comb.Degree({1}, 1);
-    REQUIRE_THAT(degree, Catch::Matchers::UnorderedEquals(
-                             std::vector<std::vector<int>>({{1}, {2}, {4}})));
+    REQUIRE(degree == 3);
   }
 
   // v = 1, k = 2
   {
+    auto adjacency = comb.Adjacency({1}, 2);
+    REQUIRE_THAT(adjacency,
+                 Catch::Matchers::UnorderedEquals(
+                     std::vector<std::vector<int>>({{1}, {2}, {3}})));
     auto degree = comb.Degree({1}, 2);
-    REQUIRE_THAT(degree, Catch::Matchers::UnorderedEquals(
-                             std::vector<std::vector<int>>({{1}, {2}, {3}})));
+    REQUIRE(degree == 3);
   }
 }
 

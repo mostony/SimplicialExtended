@@ -43,9 +43,11 @@ public:
   int BettiNumber(int k);
 
   std::vector<std::vector<int>> Incidence(const std::vector<int> &node, int k);
+  int IncidenceDegree(const std::vector<int> &node, int k);
 
   /// TODO: maybe remove self node from degree???
-  std::vector<std::vector<int>> Degree(const std::vector<int> &node, int k);
+  std::vector<std::vector<int>> Adjacency(const std::vector<int> &node, int k);
+  int Degree(const std::vector<int> &node, int k);
 
   double Closeness(std::vector<int> node, int max_rank);
   double Betweenness(std::vector<int> node, int max_rank);
