@@ -1,4 +1,5 @@
 #include "SimplicialComplex.h"
+#include <thread>
 
 void SimplicialComplex::AddComplex(std::vector<int> complex) {
   hasse_.RecursiveAddNode(complex);
@@ -8,31 +9,9 @@ void SimplicialComplex::RemoveComplex(std::vector<int> complex) {
   hasse_.RemoveNode(complex);
 }
 
-int SimplicialComplex::HasseSize() { return hasse_.Size(); }
-
 void SimplicialComplex::AddArc(const std::vector<int> &from,
                                const std::vector<int> &to) {
   hasse_.AddArc(from, to);
-}
-
-std::vector<std::vector<int>>
-SimplicialComplex::Incidence(std::vector<int> node, int k) {
-  return hasse_.Incidence(node, k);
-}
-
-std::vector<std::vector<int>> SimplicialComplex::Degree(std::vector<int> node,
-                                                        int k) {
-  return hasse_.Degree(node, k);
-}
-
-int SimplicialComplex::BettiNumber(int k) { return hasse_.BettiNumber(k); }
-
-double SimplicialComplex::Closeness(std::vector<int> node, int max_rank) {
-  return hasse_.Closeness(node, max_rank);
-}
-
-double SimplicialComplex::Betweenness(std::vector<int> node, int max_rank) {
-  return hasse_.Betweenness(node, max_rank);
 }
 
 void AddCofaces(const std::vector<std::vector<int>> &g, int depth,
@@ -188,7 +167,7 @@ SimplicialComplex::CreateCliqueGraph(const std::vector<std::vector<int>> &g,
 }
 
 std::vector<std::vector<int>> SimplicialComplex::GetMaxSimplices() {
-  return hasse_.GetMaxFaces();
+  return this->GetMaxFaces();
 }
 
 void Merge(SimplicialComplex *current, SimplicialComplex *other) {

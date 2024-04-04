@@ -3,6 +3,7 @@
 
 #include "src/CombinatorialComplex.h"
 #include "src/Graph.h"
+#include "src/HyperGraph.h"
 #include "src/SimplicialComplex.h"
 
 TEST_CASE("Simplicial Complex incidence") {

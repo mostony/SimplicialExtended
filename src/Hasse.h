@@ -10,12 +10,12 @@ class Hasse {
 public:
   void AddArc(const std::vector<int> &from, const std::vector<int> &to);
 
-  /// remove node and all upper nodes
+  /// remove node and all upper nodes, reachable from node
   void RemoveNode(const std::vector<int> &remove_node);
 
   void RemoveArc(const std::vector<int> &from, const std::vector<int> &to);
 
-  // add node and all lower nodes
+  /// add node and all lower nodes (subsets of node)
   void RecursiveAddNode(const std::vector<int> &add_node);
 
   /// use mapping to get node. If node not in mapping
@@ -44,6 +44,7 @@ public:
 
   std::vector<std::vector<int>> Incidence(const std::vector<int> &node, int k);
 
+  /// TODO: maybe remove self node from degree???
   std::vector<std::vector<int>> Degree(const std::vector<int> &node, int k);
 
   double Closeness(std::vector<int> node, int max_rank);

@@ -30,7 +30,9 @@ add_executable(tests test.cpp src/Hasse.cpp
         src/Node.cpp
         src/SimplicialComplex.cpp
         src/CombinatorialComplex.cpp
-        src/Graph.cpp)
+        src/Graph.cpp
+        src/abstract_model.cpp
+)
 
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 
@@ -41,4 +43,6 @@ pybind11_add_module(simpl
         src/Node.cpp
         src/SimplicialComplex.cpp
         src/CombinatorialComplex.cpp
-        src/Graph.cpp)
+        src/Graph.cpp
+        src/abstract_model.cpp
+)
