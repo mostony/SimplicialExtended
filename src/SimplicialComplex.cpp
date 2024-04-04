@@ -9,11 +9,6 @@ void SimplicialComplex::RemoveComplex(std::vector<int> complex) {
   hasse_.RemoveNode(complex);
 }
 
-void SimplicialComplex::AddArc(const std::vector<int> &from,
-                               const std::vector<int> &to) {
-  hasse_.AddArc(from, to);
-}
-
 void AddCofaces(const std::vector<std::vector<int>> &g, int depth,
                 int max_depth, std::vector<int> cur_node,
                 std::vector<int> neighbors, SimplicialComplex *simpl) {
@@ -42,7 +37,7 @@ void AddCofaces(const std::vector<std::vector<int>> &g, int depth,
         }
       }
     }
-    simpl->AddArc(cur_node, new_node);
+    simpl->hasse_.AddArc(cur_node, new_node);
     AddCofaces(g, depth + 1, max_depth, new_node, new_neighbors, simpl);
   }
 }
@@ -117,7 +112,7 @@ SimplicialComplex::CreateCliqueGraph(const std::vector<std::vector<int>> &g,
         for (int u = 0; u < v; u++) {
           if (g[v][u]) {
             std::vector<int> to = {v, u};
-            thread_result->AddArc(from, to);
+            thread_result->hasse_.AddArc(from, to);
           }
         }
         cur_layer.push_back(from);
@@ -134,7 +129,7 @@ SimplicialComplex::CreateCliqueGraph(const std::vector<std::vector<int>> &g,
               if (v1 > v2 && g[v1][v2]) {
                 auto new_data = sigma1;
                 new_data.push_back(v2);
-                thread_result->AddArc(sigma1, new_data);
+                thread_result->hasse_.AddArc(sigma1, new_data);
               }
             }
             next_layer.push_back(sigma1);

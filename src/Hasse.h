@@ -58,14 +58,11 @@ public:
 private:
   void RecursiveRemoveNode(const std::vector<int> &node);
 
+  void ResetCache();
   std::map<std::vector<int>, std::unique_ptr<Node>> mapping_;
 
   std::map<int, std::set<Node *>> nodes_with_fixed_rank_;
 
-  /// TODO: fix when removing node
-  /// in this case can't use vector or need to rebuild
-  /// 1) add flag to cache
-  /// 2) change nodes_with_fixed_rank_ (when no edges to it)
   std::map<std::pair<int, int>, std::vector<std::vector<int>>> cache_incidence_;
   std::map<std::pair<int, int>, std::vector<std::vector<int>>> cache_degree_;
 };

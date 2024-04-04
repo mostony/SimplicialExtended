@@ -14,6 +14,7 @@ Node *Hasse::GetNode(const std::vector<int> &node) {
 }
 
 void Hasse::AddArc(const std::vector<int> &from, const std::vector<int> &to) {
+  ResetCache();
   auto low = GetNode(from);
   auto up = GetNode(to);
   low->upper.push_back(to);
@@ -27,6 +28,7 @@ void Hasse::RemoveNode(const std::vector<int> &node) {
 
 void Hasse::RemoveArc(const std::vector<int> &from,
                       const std::vector<int> &to) {
+  ResetCache();
   auto low = GetNode(from);
   auto up = GetNode(to);
   for (auto it = low->upper.begin(); it != low->upper.end(); it++) {
@@ -45,6 +47,7 @@ void Hasse::RemoveArc(const std::vector<int> &from,
 }
 
 void Hasse::RecursiveRemoveNode(const std::vector<int> &remove_node) {
+  ResetCache();
   std::queue<std::vector<int>> q;
   std::set<std::vector<int>> used;
   q.push(remove_node);
@@ -76,6 +79,11 @@ void Hasse::RecursiveRemoveNode(const std::vector<int> &remove_node) {
   }
 }
 
+void Hasse::ResetCache() {
+  cache_degree_.clear();
+  cache_incidence_.clear();
+}
+
 bool Hasse::In(const std::vector<int> &a, const std::vector<int> &b) {
   for (size_t i = 0; i < a.size(); i++) {
     bool found = false;
@@ -97,6 +105,7 @@ void Hasse::RecursiveAddNode(const std::vector<int> &add_node) {
     return;
   }
 
+  ResetCache();
   std::queue<std::vector<int>> q;
   q.push(add_node);
   while (!q.empty()) {

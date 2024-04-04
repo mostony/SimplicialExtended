@@ -18,6 +18,7 @@ public:
                     int method = 0, int total_threads = -1);
 
   std::vector<std::vector<int>> GetMaxSimplices();
-
-  void AddArc(const std::vector<int> &from, const std::vector<int> &to);
+  friend void AddCofaces(const std::vector<std::vector<int>> &g, int depth,
+                         int max_depth, std::vector<int> cur_node,
+                         std::vector<int> neighbors, SimplicialComplex *simpl);
 };
