@@ -55,6 +55,15 @@ public:
   /// Check if a \in b
   static bool In(const std::vector<int> &a, const std::vector<int> &b);
 
+  int Dimension();
+
+  std::vector<std::pair<int, int>> FVector();
+
+  int TotalCount();
+
+  /// TODO: think about correctness for comb complex
+  int EulerCharacteristic();
+
 private:
   void RecursiveRemoveNode(const std::vector<int> &node);
 

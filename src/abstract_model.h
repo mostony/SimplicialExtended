@@ -20,6 +20,16 @@ public:
   double Closeness(std::vector<int> node, int max_rank);
   double Betweenness(std::vector<int> node, int max_rank);
 
+  int Dimension();
+
+  std::vector<std::pair<int, int>> FVector();
+
+  int TotalCount();
+
+  int EulerCharacteristic();
+
+  void Clear();
+
 protected:
   Hasse hasse_;
 };

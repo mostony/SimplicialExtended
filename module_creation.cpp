@@ -21,7 +21,11 @@ PYBIND11_MODULE(simpl, m) {
       .def("BettiNumber", &SimplicialComplex::BettiNumber)
       .def("Closeness", &SimplicialComplex::Closeness)
       .def("Betweenness", &SimplicialComplex::Betweenness)
-      .def("GetMaxSimplices", &SimplicialComplex::GetMaxSimplices);
+      .def("GetMaxSimplices", &SimplicialComplex::GetMaxSimplices)
+      .def("TotalCount", &SimplicialComplex::TotalCount)
+      .def("FVector", &SimplicialComplex::FVector)
+      .def("Dimension", &SimplicialComplex::Dimension)
+      .def("EulerCharacteristic", &SimplicialComplex::EulerCharacteristic);
 
   py::class_<HyperGraph>(m, "HyperGraph")
       .def(py::init<>())
@@ -34,7 +38,11 @@ PYBIND11_MODULE(simpl, m) {
       .def("BettiNumber", &HyperGraph::BettiNumber)
       .def("Closeness", &HyperGraph::Closeness)
       .def("Betweenness", &HyperGraph::Betweenness)
-      .def("GetEdges", &HyperGraph::GetEdges);
+      .def("GetEdges", &HyperGraph::GetEdges)
+      .def("TotalCount", &HyperGraph::TotalCount)
+      .def("FVector", &HyperGraph::FVector)
+      .def("Dimension", &HyperGraph::Dimension)
+      .def("EulerCharacteristic", &HyperGraph::EulerCharacteristic);
 
   py::class_<Graph>(m, "Graph")
       .def(py::init<>())
@@ -46,7 +54,11 @@ PYBIND11_MODULE(simpl, m) {
       .def("Degree", &Graph::Degree)
       .def("BettiNumber", &Graph::BettiNumber)
       .def("Closeness", &Graph::Closeness)
-      .def("GetEdges", &Graph::GetEdges);
+      .def("GetEdges", &Graph::GetEdges)
+      .def("TotalCount", &Graph::TotalCount)
+      .def("FVector", &Graph::FVector)
+      .def("Dimension", &Graph::Dimension)
+      .def("EulerCharacteristic", &Graph::EulerCharacteristic);
 
   py::class_<CombinatorialComplex>(m, "CombinatorialComplex")
       .def(py::init<>())
@@ -58,5 +70,9 @@ PYBIND11_MODULE(simpl, m) {
       .def("BettiNumber", &CombinatorialComplex::BettiNumber)
       .def("Closeness", &CombinatorialComplex::Closeness)
       .def("Betweenness", &CombinatorialComplex::Betweenness)
-      .def("GetEdges", &CombinatorialComplex::GetSubsets);
+      .def("GetEdges", &CombinatorialComplex::GetSubsets)
+      .def("TotalCount", &CombinatorialComplex::TotalCount)
+      .def("FVector", &CombinatorialComplex::FVector)
+      .def("Dimension", &CombinatorialComplex::Dimension)
+      .def("EulerCharacteristic", &CombinatorialComplex::EulerCharacteristic);
 }

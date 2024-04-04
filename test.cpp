@@ -179,3 +179,49 @@ TEST_CASE("Graph Betweenness") {
   // v = 1, max_rank = 1
   REQUIRE(graph.Betweenness({1}, 1) == Catch::Approx(0.65));
 }
+
+TEST_CASE("Simplex dimensions") {
+  SimplicialComplex simpl;
+  simpl.AddComplex({1, 2, 3, 4});
+  simpl.AddComplex({1, 5, 6});
+
+  REQUIRE(simpl.Dimension() == 3);
+  simpl.RemoveComplex({1, 2, 3, 4});
+  REQUIRE(simpl.Dimension() == 2);
+  simpl.RemoveComplex({1, 5, 6});
+  REQUIRE(simpl.Dimension() == 2);
+  simpl.RemoveComplex({1, 2, 4});
+  simpl.RemoveComplex({1, 2, 3});
+  simpl.RemoveComplex({1, 3, 4});
+  simpl.RemoveComplex({2, 3, 4});
+  REQUIRE(simpl.Dimension() == 1);
+}
+
+TEST_CASE("Simplex fvector & total count") {
+  SimplicialComplex simpl;
+  simpl.AddComplex({1, 2, 3, 4});
+  simpl.AddComplex({1, 5, 6});
+
+  REQUIRE_THAT(simpl.FVector(), Catch::Matchers::UnorderedEquals(
+                                    std::vector<std::pair<int, int>>(
+                                        {{0, 6}, {1, 9}, {2, 5}, {3, 1}})));
+  REQUIRE(simpl.TotalCount() == 21);
+}
+
+TEST_CASE("Simplex Euler Characteristic") {
+  SimplicialComplex simpl;
+  simpl.AddComplex({1, 2, 3});
+  simpl.AddComplex({3, 4});
+  simpl.AddComplex({4, 5, 6});
+  simpl.AddComplex({4, 5, 7});
+  simpl.AddComplex({6, 7});
+  simpl.AddComplex({2, 7});
+  simpl.RemoveComplex({1, 2});
+
+  REQUIRE(simpl.EulerCharacteristic() == -1);
+  simpl.Clear();
+
+  simpl.AddComplex({1, 2, 3, 4});
+  simpl.AddComplex({1, 5, 6});
+  REQUIRE(simpl.EulerCharacteristic() == +1);
+}

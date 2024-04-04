@@ -1,4 +1,5 @@
 #include "Hasse.h"
+#include "Node.h"
 
 #include <cassert>
 #include <queue>
@@ -204,6 +205,56 @@ std::vector<std::vector<int>> Hasse::DegreeMatrix(int p, int k) {
   }
   cache_degree_[std::make_pair(k, p)] = std::move(result);
   return cache_degree_[std::make_pair(k, p)];
+}
+
+int Hasse::Dimension() {
+  while (!nodes_with_fixed_rank_.empty()) {
+    auto it = std::prev(nodes_with_fixed_rank_.end());
+    if (it->second.empty()) {
+      nodes_with_fixed_rank_.erase(it);
+    } else {
+      return it->first;
+    }
+  }
+  assert(nodes_with_fixed_rank_.empty());
+  return 0;
+}
+
+std::vector<std::pair<int, int>> Hasse::FVector() {
+  std::vector<std::pair<int, int>> result;
+  for (const auto &[rank, nodes] : nodes_with_fixed_rank_) {
+    int size = nodes.size();
+    if (size != 0 && rank != -1) {
+      result.emplace_back(rank, size);
+    }
+  }
+  return result;
+}
+
+int Hasse::TotalCount() {
+  int result = 0;
+  for (const auto &[rank, nodes] : nodes_with_fixed_rank_) {
+    int size = nodes.size();
+    if (size != 0 && rank != -1) {
+      result += size;
+    }
+  }
+  return result;
+}
+
+int Hasse::EulerCharacteristic() {
+  int result = 0;
+  for (const auto &[rank, nodes] : nodes_with_fixed_rank_) {
+    int size = nodes.size();
+    if (size != 0 && rank != -1) {
+      if (rank % 2 == 0) {
+        result += size;
+      } else {
+        result -= size;
+      }
+    }
+  }
+  return result;
 }
 
 int Hasse::SNF(std::vector<std::vector<int>> mat) {
