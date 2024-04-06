@@ -4,7 +4,7 @@
 
 /// TODO: dimension of graph???
 class Graph : public AbstractModel {
-public:
+ public:
   void AddEdge(int v, int u);
 
   void RemoveEdge(int v, int u);

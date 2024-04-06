@@ -3,7 +3,7 @@
 #include "abstract_model.h"
 
 class HyperGraph : public AbstractModel {
-public:
+ public:
   void AddEdge(std::vector<int> edge);
 
   void RemoveEdge(std::vector<int> edge);

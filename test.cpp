@@ -202,9 +202,10 @@ TEST_CASE("Simplex fvector & total count") {
   simpl.AddComplex({1, 2, 3, 4});
   simpl.AddComplex({1, 5, 6});
 
-  REQUIRE_THAT(simpl.FVector(), Catch::Matchers::UnorderedEquals(
-                                    std::vector<std::pair<int, int>>(
-                                        {{0, 6}, {1, 9}, {2, 5}, {3, 1}})));
+  REQUIRE_THAT(
+      simpl.FVector(),
+      Catch::Matchers::UnorderedEquals(
+          std::vector<std::pair<int, int>>({{0, 6}, {1, 9}, {2, 5}, {3, 1}})));
   REQUIRE(simpl.TotalCount() == 21);
 }
 

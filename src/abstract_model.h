@@ -4,7 +4,7 @@
 #include <vector>
 
 class AbstractModel {
-public:
+ public:
   int HasseSize();
 
   std::vector<std::vector<int>> GetMaxFaces();
@@ -30,6 +30,6 @@ public:
 
   void Clear();
 
-protected:
+ protected:
   Hasse hasse_;
 };

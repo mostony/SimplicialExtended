@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-Node *Hasse::GetNode(const std::vector<int> &node) {
+Node* Hasse::GetNode(const std::vector<int>& node) {
   assert(is_sorted(node.begin(), node.end()));
   if (!mapping_.count(node)) {
     mapping_[node] = std::unique_ptr<Node>(new Node(node));
@@ -17,7 +17,7 @@ Node *Hasse::GetNode(const std::vector<int> &node) {
   return mapping_[node].get();
 }
 
-void Hasse::AddArc(const std::vector<int> &from, const std::vector<int> &to) {
+void Hasse::AddArc(const std::vector<int>& from, const std::vector<int>& to) {
   ResetCache();
   auto low = GetNode(from);
   auto up = GetNode(to);
@@ -26,12 +26,12 @@ void Hasse::AddArc(const std::vector<int> &from, const std::vector<int> &to) {
 }
 
 /// TODO: add remove from mapping
-void Hasse::RemoveNode(const std::vector<int> &node) {
+void Hasse::RemoveNode(const std::vector<int>& node) {
   RecursiveRemoveNode(node);
 }
 
-void Hasse::RemoveArc(const std::vector<int> &from,
-                      const std::vector<int> &to) {
+void Hasse::RemoveArc(const std::vector<int>& from,
+                      const std::vector<int>& to) {
   ResetCache();
   auto low = GetNode(from);
   auto up = GetNode(to);
@@ -50,7 +50,7 @@ void Hasse::RemoveArc(const std::vector<int> &from,
   }
 }
 
-void Hasse::RecursiveRemoveNode(const std::vector<int> &remove_node) {
+void Hasse::RecursiveRemoveNode(const std::vector<int>& remove_node) {
   ResetCache();
   std::queue<std::vector<int>> q;
   std::set<std::vector<int>> used;
@@ -62,7 +62,7 @@ void Hasse::RecursiveRemoveNode(const std::vector<int> &remove_node) {
     auto node = GetNode(top);
     nodes_with_fixed_rank_[node->rank].erase(node);
 
-    for (const auto &nxt : node->upper) {
+    for (const auto& nxt : node->upper) {
       if (!used.count(nxt)) {
         used.insert(nxt);
         q.push(nxt);
@@ -70,7 +70,7 @@ void Hasse::RecursiveRemoveNode(const std::vector<int> &remove_node) {
     }
 
     while (!node->lower.empty()) {
-      const auto &prev = node->lower.back();
+      const auto& prev = node->lower.back();
       RemoveArc(prev, top);
     }
 
@@ -78,7 +78,7 @@ void Hasse::RecursiveRemoveNode(const std::vector<int> &remove_node) {
     node->lower.clear();
   }
 
-  for (const auto &node : used) {
+  for (const auto& node : used) {
     mapping_.erase(node);
   }
 }
@@ -88,7 +88,7 @@ void Hasse::ResetCache() {
   cache_incidence_.clear();
 }
 
-bool Hasse::In(const std::vector<int> &a, const std::vector<int> &b) {
+bool Hasse::In(const std::vector<int>& a, const std::vector<int>& b) {
   for (size_t i = 0; i < a.size(); i++) {
     bool found = false;
     for (size_t j = 0; j < b.size(); j++) {
@@ -104,7 +104,7 @@ bool Hasse::In(const std::vector<int> &a, const std::vector<int> &b) {
   return true;
 }
 
-void Hasse::RecursiveAddNode(const std::vector<int> &add_node) {
+void Hasse::RecursiveAddNode(const std::vector<int>& add_node) {
   if (mapping_.count(add_node)) {
     return;
   }
@@ -139,7 +139,7 @@ void Hasse::RecursiveAddNode(const std::vector<int> &add_node) {
 
 std::vector<std::vector<int>> Hasse::GetMaxFaces() {
   std::vector<std::vector<int>> result;
-  for (auto &[id, node] : mapping_) {
+  for (auto& [id, node] : mapping_) {
     if (node->upper.empty()) {
       result.push_back(node->data);
     }
@@ -149,13 +149,15 @@ std::vector<std::vector<int>> Hasse::GetMaxFaces() {
 
 std::vector<std::vector<int>> Hasse::GetAllElements() {
   std::vector<std::vector<int>> result;
-  for (auto &[id, node] : mapping_) {
+  for (auto& [id, node] : mapping_) {
     result.push_back(node->data);
   }
   return result;
 }
 
-int Hasse::Size() { return mapping_.size(); }
+int Hasse::Size() {
+  return mapping_.size();
+}
 
 std::vector<std::vector<int>> Hasse::IncidenceMatrix(int p, int k) {
   if (k < p) {
@@ -165,10 +167,10 @@ std::vector<std::vector<int>> Hasse::IncidenceMatrix(int p, int k) {
   if (cache_incidence_.count(std::make_pair(k, p))) {
     return cache_incidence_[std::make_pair(k, p)];
   }
-  std::vector<Node *> lower(nodes_with_fixed_rank_[p].begin(),
-                            nodes_with_fixed_rank_[p].end());
-  std::vector<Node *> upper(nodes_with_fixed_rank_[k].begin(),
-                            nodes_with_fixed_rank_[k].end());
+  std::vector<Node*> lower(nodes_with_fixed_rank_[p].begin(),
+                           nodes_with_fixed_rank_[p].end());
+  std::vector<Node*> upper(nodes_with_fixed_rank_[k].begin(),
+                           nodes_with_fixed_rank_[k].end());
   std::vector<std::vector<int>> result(lower.size(),
                                        std::vector<int>(upper.size()));
   for (size_t i = 0; i < lower.size(); i++) {
@@ -225,7 +227,7 @@ int Hasse::Dimension() {
 
 std::vector<std::pair<int, int>> Hasse::FVector() {
   std::vector<std::pair<int, int>> result;
-  for (const auto &[rank, nodes] : nodes_with_fixed_rank_) {
+  for (const auto& [rank, nodes] : nodes_with_fixed_rank_) {
     int size = nodes.size();
     if (size != 0 && rank != -1) {
       result.emplace_back(rank, size);
@@ -236,7 +238,7 @@ std::vector<std::pair<int, int>> Hasse::FVector() {
 
 int Hasse::TotalCount() {
   int result = 0;
-  for (const auto &[rank, nodes] : nodes_with_fixed_rank_) {
+  for (const auto& [rank, nodes] : nodes_with_fixed_rank_) {
     int size = nodes.size();
     if (size != 0 && rank != -1) {
       result += size;
@@ -247,7 +249,7 @@ int Hasse::TotalCount() {
 
 int Hasse::EulerCharacteristic() {
   int result = 0;
-  for (const auto &[rank, nodes] : nodes_with_fixed_rank_) {
+  for (const auto& [rank, nodes] : nodes_with_fixed_rank_) {
     int size = nodes.size();
     if (size != 0 && rank != -1) {
       if (rank % 2 == 0) {
@@ -345,13 +347,13 @@ int Hasse::BettiNumber(int k) {
   return kernel - image;
 }
 
-void Merge(Hasse &current, Hasse &other) {
-  for (auto &[key, value] : other.mapping_) {
+void Merge(Hasse& current, Hasse& other) {
+  for (auto& [key, value] : other.mapping_) {
     current.mapping_[key] = std::move(value);
   }
 }
 
-std::vector<std::vector<int>> Hasse::Incidence(const std::vector<int> &node,
+std::vector<std::vector<int>> Hasse::Incidence(const std::vector<int>& node,
                                                int k) {
   int p = GetNode(node)->rank;
   if (k < p) {
@@ -359,10 +361,10 @@ std::vector<std::vector<int>> Hasse::Incidence(const std::vector<int> &node,
   }
   auto mat = IncidenceMatrix(p, k);
   std::vector<std::vector<int>> result;
-  std::vector<Node *> upper(nodes_with_fixed_rank_[k].begin(),
-                            nodes_with_fixed_rank_[k].end());
-  std::vector<Node *> lower(nodes_with_fixed_rank_[p].begin(),
-                            nodes_with_fixed_rank_[p].end());
+  std::vector<Node*> upper(nodes_with_fixed_rank_[k].begin(),
+                           nodes_with_fixed_rank_[k].end());
+  std::vector<Node*> lower(nodes_with_fixed_rank_[p].begin(),
+                           nodes_with_fixed_rank_[p].end());
   size_t row = 0;
   while (lower[row]->data != node) {
     row += 1;
@@ -376,18 +378,18 @@ std::vector<std::vector<int>> Hasse::Incidence(const std::vector<int> &node,
   return result;
 }
 
-int Hasse::IncidenceDegree(const std::vector<int> &node, int k) {
+int Hasse::IncidenceDegree(const std::vector<int>& node, int k) {
   return Incidence(node, k).size();
 }
 
-std::vector<std::vector<int>> Hasse::Adjacency(const std::vector<int> &node,
+std::vector<std::vector<int>> Hasse::Adjacency(const std::vector<int>& node,
                                                int k) {
   int p = GetNode(node)->rank;
   std::vector<std::vector<int>> result;
   auto mat = DegreeMatrix(p, k);
 
-  std::vector<Node *> simplices(nodes_with_fixed_rank_[p].begin(),
-                                nodes_with_fixed_rank_[p].end());
+  std::vector<Node*> simplices(nodes_with_fixed_rank_[p].begin(),
+                               nodes_with_fixed_rank_[p].end());
   size_t row = 0;
   while (simplices[row]->data != node) {
     row += 1;
@@ -401,7 +403,7 @@ std::vector<std::vector<int>> Hasse::Adjacency(const std::vector<int> &node,
   return result;
 }
 
-int Hasse::Degree(const std::vector<int> &node, int k) {
+int Hasse::Degree(const std::vector<int>& node, int k) {
   return Adjacency(node, k).size();
 }
 
@@ -425,8 +427,8 @@ double Hasse::Closeness(std::vector<int> node, int max_rank) {
   std::queue<int> q;
 
   // TODO: very bad code: add function
-  std::vector<Node *> tmp(nodes_with_fixed_rank_[k].begin(),
-                          nodes_with_fixed_rank_[k].end());
+  std::vector<Node*> tmp(nodes_with_fixed_rank_[k].begin(),
+                         nodes_with_fixed_rank_[k].end());
   size_t start = 0;
   while (tmp[start]->data != node) {
     start += 1;
@@ -474,8 +476,8 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank) {
   auto g = DegreeMatrix(k, max_rank);
   int n = g.size();
 
-  std::vector<Node *> nodes(nodes_with_fixed_rank_[k].begin(),
-                            nodes_with_fixed_rank_[k].end());
+  std::vector<Node*> nodes(nodes_with_fixed_rank_[k].begin(),
+                           nodes_with_fixed_rank_[k].end());
   size_t ind_node = 0;
   while (nodes[ind_node]->data != node) {
     ind_node += 1;
@@ -490,7 +492,7 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank) {
     std::vector<int> dist(n, n);
     std::vector<int> shortest_path_cnt(n, 0);
     std::vector<std::pair<int, int>> shortest_path_through_node_cnt(
-        n, {0, 0}); // (cnt, visited)
+        n, {0, 0});  // (cnt, visited)
     std::queue<int> q;
     dist[i] = 0;
     q.push(i);

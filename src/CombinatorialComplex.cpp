@@ -1,7 +1,7 @@
 #include "CombinatorialComplex.h"
 
 void CombinatorialComplex::Build(std::vector<std::vector<int>> data) {
-  std::vector<Node *> nodes;
+  std::vector<Node*> nodes;
   for (size_t i = 0; i < data.size(); i++) {
     std::sort(data[i].begin(), data[i].end());
     nodes.push_back(hasse_.GetNode(data[i]));

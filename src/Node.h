@@ -9,5 +9,5 @@ struct Node {
   int size = 0;
   Node();
 
-  Node(const std::vector<int> &node);
+  Node(const std::vector<int>& node);
 };
