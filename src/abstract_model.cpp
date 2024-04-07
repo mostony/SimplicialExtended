@@ -39,6 +39,16 @@ double AbstractModel::Betweenness(std::vector<int> node, int max_rank) {
   return hasse_.Betweenness(node, max_rank);
 }
 
+std::vector<std::pair<std::vector<int>, double>> AbstractModel::ClosenessAll(
+    int p, int max_rank) {
+  return hasse_.ClosenessAll(p, max_rank);
+}
+
+std::vector<std::pair<std::vector<int>, double>> AbstractModel::BetweennessAll(
+    int p, int max_rank) {
+  return hasse_.BetweennessAll(p, max_rank);
+}
+
 int AbstractModel::Dimension() {
   return hasse_.Dimension();
 }
@@ -57,4 +67,13 @@ int AbstractModel::EulerCharacteristic() {
 
 void AbstractModel::Clear() {
   hasse_ = Hasse();
+}
+
+void AbstractModel::AddFunction(std::string name,
+                                std::function<double(std::vector<int>)> func) {
+  hasse_.AddFunction(name, func);
+}
+
+void AbstractModel::ThresholdAbove(std::string name, double threshold) {
+  hasse_.ThresholdAbove(name, threshold);
 }

@@ -7,6 +7,7 @@
 #include <stdexcept>
 
 #include <algorithm>
+#include <vector>
 
 Node* Hasse::GetNode(const std::vector<int>& node) {
   assert(is_sorted(node.begin(), node.end()));
@@ -167,10 +168,11 @@ std::vector<std::vector<int>> Hasse::IncidenceMatrix(int p, int k) {
   if (cache_incidence_.count(std::make_pair(k, p))) {
     return cache_incidence_[std::make_pair(k, p)];
   }
-  std::vector<Node*> lower(nodes_with_fixed_rank_[p].begin(),
-                           nodes_with_fixed_rank_[p].end());
-  std::vector<Node*> upper(nodes_with_fixed_rank_[k].begin(),
-                           nodes_with_fixed_rank_[k].end());
+
+  std::vector<Node*> lower = GetNodesWithFixedRank(p);
+
+  std::vector<Node*> upper = GetNodesWithFixedRank(k);
+
   std::vector<std::vector<int>> result(lower.size(),
                                        std::vector<int>(upper.size()));
   for (size_t i = 0; i < lower.size(); i++) {
@@ -361,10 +363,9 @@ std::vector<std::vector<int>> Hasse::Incidence(const std::vector<int>& node,
   }
   auto mat = IncidenceMatrix(p, k);
   std::vector<std::vector<int>> result;
-  std::vector<Node*> upper(nodes_with_fixed_rank_[k].begin(),
-                           nodes_with_fixed_rank_[k].end());
-  std::vector<Node*> lower(nodes_with_fixed_rank_[p].begin(),
-                           nodes_with_fixed_rank_[p].end());
+  std::vector<Node*> upper = GetNodesWithFixedRank(k);
+  std::vector<Node*> lower = GetNodesWithFixedRank(p);
+
   size_t row = 0;
   while (lower[row]->data != node) {
     row += 1;
@@ -388,16 +389,16 @@ std::vector<std::vector<int>> Hasse::Adjacency(const std::vector<int>& node,
   std::vector<std::vector<int>> result;
   auto mat = DegreeMatrix(p, k);
 
-  std::vector<Node*> simplices(nodes_with_fixed_rank_[p].begin(),
-                               nodes_with_fixed_rank_[p].end());
+  std::vector<Node*> nodes = GetNodesWithFixedRank(p);
+
   size_t row = 0;
-  while (simplices[row]->data != node) {
+  while (nodes[row]->data != node) {
     row += 1;
   }
 
   for (size_t col = 0; col < mat[row].size(); col++) {
     if (mat[row][col]) {
-      result.push_back(simplices[col]->data);
+      result.push_back(nodes[col]->data);
     }
   }
   return result;
@@ -426,9 +427,8 @@ double Hasse::Closeness(std::vector<int> node, int max_rank) {
   std::vector<int> dist(n, n);
   std::queue<int> q;
 
-  // TODO: very bad code: add function
-  std::vector<Node*> tmp(nodes_with_fixed_rank_[k].begin(),
-                         nodes_with_fixed_rank_[k].end());
+  std::vector<Node*> tmp = GetNodesWithFixedRank(k);
+
   size_t start = 0;
   while (tmp[start]->data != node) {
     start += 1;
@@ -446,17 +446,23 @@ double Hasse::Closeness(std::vector<int> node, int max_rank) {
     }
   }
   int sum_distances = 0;
-  bool is_connected = true;
+  int visited = 0;
   for (int v = 0; v < n; v++) {
-    sum_distances += dist[v];
-    if (v != start && dist[v] == n) {
-      is_connected = false;
+    if (dist[v] != n) {
+      sum_distances += dist[v];
+      visited += 1;
     }
   }
-  if (!is_connected) {
+
+  /// TODO: now norming by number of visisted nodes
+  /// including self
+
+  if (visited == 1) {  // node isolated
     return 0.0;
   }
-  double avg_sum_distance = 1.0 * sum_distances / (n - 1);
+
+  double avg_sum_distance = 1.0 * sum_distances / (visited - 1);
+  avg_sum_distance *= 1.0 * (n - 1) / (visited - 1);
   return 1 / avg_sum_distance;
 }
 
@@ -476,8 +482,8 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank) {
   auto g = DegreeMatrix(k, max_rank);
   int n = g.size();
 
-  std::vector<Node*> nodes(nodes_with_fixed_rank_[k].begin(),
-                           nodes_with_fixed_rank_[k].end());
+  std::vector<Node*> nodes = GetNodesWithFixedRank(k);
+
   size_t ind_node = 0;
   while (nodes[ind_node]->data != node) {
     ind_node += 1;
@@ -531,6 +537,7 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank) {
         }
       }
     }
+
     for (int u = i + 1; u < n; u++) {
       if (u == ind_node) {
         continue;
@@ -539,11 +546,69 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank) {
                 shortest_path_through_node_cnt[u].second;
       int den = shortest_path_cnt[u];
       if (den == 0) {
-        throw std::runtime_error("Unconnected graph");
+        continue;
+        // throw std::runtime_error("Unconnected graph");
       }
       sum_distances += 1.0 * num / den;
     }
   }
+  /// TODO: norm by n, maybe should norm by visited nodes
   int norm = (n - 1) * (n - 2) / 2;
   return sum_distances / norm;
+}
+
+std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessAll(
+    int p, int max_rank) {
+  auto g = DegreeMatrix(p, max_rank);
+  int n = g.size();
+  std::vector<std::pair<std::vector<int>, double>> result;
+  std::vector<Node*> nodes = GetNodesWithFixedRank(p);
+  for (auto node : nodes) {
+    result.emplace_back(node->data, Closeness(node->data, max_rank));
+  }
+  return result;
+}
+
+std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(
+    int p, int max_rank) {
+  auto g = DegreeMatrix(p, max_rank);
+  int n = g.size();
+  std::vector<std::pair<std::vector<int>, double>> result;
+  std::vector<Node*> nodes = GetNodesWithFixedRank(p);
+  for (auto node : nodes) {
+    result.emplace_back(node->data, Betweenness(node->data, max_rank));
+  }
+  return result;
+}
+
+void Hasse::AddFunction(std::string name,
+                        std::function<double(std::vector<int>)> func) {
+  custom_function_[name] = func;
+}
+
+std::vector<Node*> Hasse::GetNodesWithFixedRank(int rank) {
+  std::vector<Node*> nodes(nodes_with_fixed_rank_[rank].begin(),
+                           nodes_with_fixed_rank_[rank].end());
+  return nodes;
+}
+
+void Hasse::ThresholdAbove(std::string name, double threshold) {
+  if (!custom_function_.count(name)) {
+    throw std::runtime_error("no such function");
+  }
+  auto& func = custom_function_[name];
+  ResetCache();
+  std::vector<int> ranks;
+  for (const auto& [rank, _] : nodes_with_fixed_rank_) {
+    ranks.push_back(rank);
+  }
+  reverse(ranks.begin(), ranks.end());
+  for (auto rank : ranks) {
+    auto nodes = GetNodesWithFixedRank(rank);
+    for (auto node : nodes) {
+      if (func(node->data) >= threshold) {
+        RemoveNode(node->data);
+      }
+    }
+  }
 }

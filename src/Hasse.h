@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Node.h"
+#include <functional>
 #include <map>
 #include <memory>
 #include <set>
@@ -8,6 +9,11 @@
 
 class Hasse {
  public:
+  void AddFunction(std::string name,
+                   std::function<double(std::vector<int>)> func);
+
+  void ThresholdAbove(std::string name, double threshold);
+
   void AddArc(const std::vector<int>& from, const std::vector<int>& to);
 
   /// remove node and all upper nodes, reachable from node
@@ -54,6 +60,13 @@ class Hasse {
   double Closeness(std::vector<int> node, int max_rank);
   double Betweenness(std::vector<int> node, int max_rank);
 
+  /// get centrality stat for all nodes with rank = p
+  /// through max_rank.
+  std::vector<std::pair<std::vector<int>, double>> ClosenessAll(int p,
+                                                                int max_rank);
+  std::vector<std::pair<std::vector<int>, double>> BetweennessAll(int p,
+                                                                  int max_rank);
+
   /// Check if a \in b
   static bool In(const std::vector<int>& a, const std::vector<int>& b);
 
@@ -70,10 +83,15 @@ class Hasse {
   void RecursiveRemoveNode(const std::vector<int>& node);
 
   void ResetCache();
+
+  std::vector<Node*> GetNodesWithFixedRank(int rank);
+
   std::map<std::vector<int>, std::unique_ptr<Node>> mapping_;
 
   std::map<int, std::set<Node*>> nodes_with_fixed_rank_;
 
   std::map<std::pair<int, int>, std::vector<std::vector<int>>> cache_incidence_;
   std::map<std::pair<int, int>, std::vector<std::vector<int>>> cache_degree_;
+  std::map<std::string, std::function<double(std::vector<int>)>>
+      custom_function_;
 };

@@ -10,4 +10,6 @@ struct Node {
   Node();
 
   Node(const std::vector<int>& node);
+
+  Node(const std::vector<int>& node, int init_rank);
 };

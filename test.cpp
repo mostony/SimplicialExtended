@@ -154,7 +154,7 @@ TEST_CASE("Simplicial closeness") {
   REQUIRE(simpl.Closeness({5}, 1) == Catch::Approx(0.625));
 
   REQUIRE(simpl.Closeness({1}, 2) == Catch::Approx(1));
-  REQUIRE(simpl.Closeness({1}, 3) == Catch::Approx(0));
+  REQUIRE(simpl.Closeness({1}, 3) == Catch::Approx(1));
 }
 
 TEST_CASE("Simplicial Betweenness") {

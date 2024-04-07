@@ -5,6 +5,10 @@
 
 class AbstractModel {
  public:
+  void AddFunction(std::string name,
+                   std::function<double(std::vector<int>)> func);
+  void ThresholdAbove(std::string name, double threshold);
+
   int HasseSize();
 
   std::vector<std::vector<int>> GetMaxFaces();
@@ -19,6 +23,11 @@ class AbstractModel {
 
   double Closeness(std::vector<int> node, int max_rank);
   double Betweenness(std::vector<int> node, int max_rank);
+
+  std::vector<std::pair<std::vector<int>, double>> ClosenessAll(int p,
+                                                                int max_rank);
+  std::vector<std::pair<std::vector<int>, double>> BetweennessAll(int p,
+                                                                  int max_rank);
 
   int Dimension();
 
