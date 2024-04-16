@@ -2,6 +2,8 @@
 
 #include "Hasse.h"
 #include <vector>
+#include <string>
+#include <functional>
 
 class AbstractModel {
  public:

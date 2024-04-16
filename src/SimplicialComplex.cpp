@@ -1,6 +1,7 @@
 #include "SimplicialComplex.h"
 #include <algorithm>
 #include <thread>
+#include <stdexcept>
 
 void SimplicialComplex::AddComplex(std::vector<int> complex) {
   std::sort(complex.begin(), complex.end());
