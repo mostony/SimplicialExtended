@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.11...3.26)
 project(simpl)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(src)
@@ -25,6 +25,14 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Catch2)
 
+FetchContent_Declare(
+        Eigen3
+        GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+        GIT_TAG 3.4.0
+)
+
+FetchContent_MakeAvailable(Eigen3)
+
 add_executable(tests test.cpp src/Hasse.cpp
         src/HyperGraph.cpp
         src/Node.cpp
@@ -35,6 +43,7 @@ add_executable(tests test.cpp src/Hasse.cpp
 )
 
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+target_link_libraries(tests PRIVATE Eigen3::Eigen)
 
 pybind11_add_module(simpl
         module_creation.cpp
@@ -46,3 +55,4 @@ pybind11_add_module(simpl
         src/Graph.cpp
         src/abstract_model.cpp
 )
+target_link_libraries(simpl PRIVATE Eigen3::Eigen)

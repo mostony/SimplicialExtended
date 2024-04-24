@@ -3,13 +3,15 @@
 
 #include "src/CombinatorialComplex.h"
 #include "src/Graph.h"
+#include "src/Hasse.h"
 #include "src/HyperGraph.h"
 #include "src/SimplicialComplex.h"
+#include <Eigen/Dense>
 
 TEST_CASE("Simplicial Complex incidence") {
   SimplicialComplex simpl;
-  simpl.AddComplex({1, 2, 3, 4});
-  simpl.AddComplex({1, 5, 6});
+  simpl.AddSimplex({1, 2, 3, 4});
+  simpl.AddSimplex({1, 5, 6});
 
   // v = 1, k = 1
   {
@@ -43,27 +45,27 @@ TEST_CASE("Simplicial Complex incidence") {
 
 TEST_CASE("Simplicial Complex degree") {
   SimplicialComplex simpl;
-  simpl.AddComplex({1, 2, 3, 4});
-  simpl.AddComplex({1, 5, 6});
+  simpl.AddSimplex({1, 2, 3, 4});
+  simpl.AddSimplex({1, 5, 6});
 
   // v = 1, k = 1
   {
     auto adjacency = simpl.Adjacency({1}, 1);
     REQUIRE_THAT(adjacency,
-                 Catch::Matchers::UnorderedEquals(std::vector<std::vector<int>>(
-                     {{1}, {2}, {3}, {4}, {5}, {6}})));
+                 Catch::Matchers::UnorderedEquals(
+                     std::vector<std::vector<int>>({{2}, {3}, {4}, {5}, {6}})));
     auto degree = simpl.Degree({1}, 1);
-    REQUIRE(degree == 6);
+    REQUIRE(degree == 5);
   }
 
   // v = 1, k = 2
   {
     auto adjacency = simpl.Adjacency({1}, 2);
     REQUIRE_THAT(adjacency,
-                 Catch::Matchers::UnorderedEquals(std::vector<std::vector<int>>(
-                     {{1}, {2}, {3}, {4}, {5}, {6}})));
+                 Catch::Matchers::UnorderedEquals(
+                     std::vector<std::vector<int>>({{2}, {3}, {4}, {5}, {6}})));
     auto degree = simpl.Degree({1}, 2);
-    REQUIRE(degree == 6);
+    REQUIRE(degree == 5);
   }
 
   // v = 1, k = 3
@@ -71,9 +73,9 @@ TEST_CASE("Simplicial Complex degree") {
     auto adjacency = simpl.Adjacency({1}, 3);
     REQUIRE_THAT(adjacency,
                  Catch::Matchers::UnorderedEquals(
-                     std::vector<std::vector<int>>({{1}, {2}, {3}, {4}})));
+                     std::vector<std::vector<int>>({{2}, {3}, {4}})));
     auto degree = simpl.Degree({1}, 3);
-    REQUIRE(degree == 4);
+    REQUIRE(degree == 3);
   }
 }
 
@@ -110,33 +112,31 @@ TEST_CASE("Combinatorial Complex degree") {
   // v = 1, k = 1
   {
     auto adjacency = comb.Adjacency({1}, 1);
-    REQUIRE_THAT(adjacency,
-                 Catch::Matchers::UnorderedEquals(
-                     std::vector<std::vector<int>>({{1}, {2}, {4}})));
+    REQUIRE_THAT(adjacency, Catch::Matchers::UnorderedEquals(
+                                std::vector<std::vector<int>>({{2}, {4}})));
     auto degree = comb.Degree({1}, 1);
-    REQUIRE(degree == 3);
+    REQUIRE(degree == 2);
   }
 
   // v = 1, k = 2
   {
     auto adjacency = comb.Adjacency({1}, 2);
-    REQUIRE_THAT(adjacency,
-                 Catch::Matchers::UnorderedEquals(
-                     std::vector<std::vector<int>>({{1}, {2}, {3}})));
+    REQUIRE_THAT(adjacency, Catch::Matchers::UnorderedEquals(
+                                std::vector<std::vector<int>>({{2}, {3}})));
     auto degree = comb.Degree({1}, 2);
-    REQUIRE(degree == 3);
+    REQUIRE(degree == 2);
   }
 }
 
 TEST_CASE("Betti numbers") {
   SimplicialComplex simpl;
-  simpl.AddComplex({1, 2, 3});
-  simpl.AddComplex({3, 4});
-  simpl.AddComplex({4, 5, 6});
-  simpl.AddComplex({4, 5, 7});
-  simpl.AddComplex({6, 7});
-  simpl.AddComplex({2, 7});
-  simpl.RemoveComplex({1, 2});
+  simpl.AddSimplex({1, 2, 3});
+  simpl.AddSimplex({3, 4});
+  simpl.AddSimplex({4, 5, 6});
+  simpl.AddSimplex({4, 5, 7});
+  simpl.AddSimplex({6, 7});
+  simpl.AddSimplex({2, 7});
+  simpl.RemoveSimplex({1, 2});
 
   REQUIRE(simpl.BettiNumber(0) == 1);
   REQUIRE(simpl.BettiNumber(1) == 2);
@@ -145,25 +145,35 @@ TEST_CASE("Betti numbers") {
 
 TEST_CASE("Simplicial closeness") {
   SimplicialComplex simpl;
-  simpl.AddComplex({1, 2, 3, 4});
-  simpl.AddComplex({1, 5, 6});
+  simpl.AddSimplex({1, 2, 3, 4});
+  simpl.AddSimplex({1, 5, 6});
 
-  // max_rank = 2
   REQUIRE(simpl.Closeness({1}, 1) == Catch::Approx(1.0));
   REQUIRE(simpl.Closeness({2}, 1) == Catch::Approx(0.71428571428));
   REQUIRE(simpl.Closeness({5}, 1) == Catch::Approx(0.625));
 
   REQUIRE(simpl.Closeness({1}, 2) == Catch::Approx(1));
-  REQUIRE(simpl.Closeness({1}, 3) == Catch::Approx(1));
+  REQUIRE(simpl.Closeness({1}, 3) == Catch::Approx(0.6));
+
+  // weighted = 1.0 check
+  REQUIRE(simpl.Closeness({1}, 1, true) == Catch::Approx(1.0));
+  REQUIRE(simpl.Closeness({2}, 1, true) == Catch::Approx(0.71428571428));
+  REQUIRE(simpl.Closeness({5}, 1, true) == Catch::Approx(0.625));
+
+  REQUIRE(simpl.Closeness({1}, 2, true) == Catch::Approx(1));
+  REQUIRE(simpl.Closeness({1}, 3, true) == Catch::Approx(0.6));
 }
 
 TEST_CASE("Simplicial Betweenness") {
   SimplicialComplex simpl;
-  simpl.AddComplex({1, 2, 3, 4});
-  simpl.AddComplex({1, 5, 6});
+  simpl.AddSimplex({1, 2, 3, 4});
+  simpl.AddSimplex({1, 5, 6});
 
   // v = 1, max_rank = 1
   REQUIRE(simpl.Betweenness({1}, 1) == Catch::Approx(0.6));
+
+  // weighted
+  REQUIRE(simpl.Betweenness({1}, 1, true) == Catch::Approx(0.6));
 }
 
 TEST_CASE("Graph Betweenness") {
@@ -182,25 +192,25 @@ TEST_CASE("Graph Betweenness") {
 
 TEST_CASE("Simplex dimensions") {
   SimplicialComplex simpl;
-  simpl.AddComplex({1, 2, 3, 4});
-  simpl.AddComplex({1, 5, 6});
+  simpl.AddSimplex({1, 2, 3, 4});
+  simpl.AddSimplex({1, 5, 6});
 
   REQUIRE(simpl.Dimension() == 3);
-  simpl.RemoveComplex({1, 2, 3, 4});
+  simpl.RemoveSimplex({1, 2, 3, 4});
   REQUIRE(simpl.Dimension() == 2);
-  simpl.RemoveComplex({1, 5, 6});
+  simpl.RemoveSimplex({1, 5, 6});
   REQUIRE(simpl.Dimension() == 2);
-  simpl.RemoveComplex({1, 2, 4});
-  simpl.RemoveComplex({1, 2, 3});
-  simpl.RemoveComplex({1, 3, 4});
-  simpl.RemoveComplex({2, 3, 4});
+  simpl.RemoveSimplex({1, 2, 4});
+  simpl.RemoveSimplex({1, 2, 3});
+  simpl.RemoveSimplex({1, 3, 4});
+  simpl.RemoveSimplex({2, 3, 4});
   REQUIRE(simpl.Dimension() == 1);
 }
 
 TEST_CASE("Simplex fvector & total count") {
   SimplicialComplex simpl;
-  simpl.AddComplex({1, 2, 3, 4});
-  simpl.AddComplex({1, 5, 6});
+  simpl.AddSimplex({1, 2, 3, 4});
+  simpl.AddSimplex({1, 5, 6});
 
   REQUIRE_THAT(
       simpl.FVector(),
@@ -211,18 +221,31 @@ TEST_CASE("Simplex fvector & total count") {
 
 TEST_CASE("Simplex Euler Characteristic") {
   SimplicialComplex simpl;
-  simpl.AddComplex({1, 2, 3});
-  simpl.AddComplex({3, 4});
-  simpl.AddComplex({4, 5, 6});
-  simpl.AddComplex({4, 5, 7});
-  simpl.AddComplex({6, 7});
-  simpl.AddComplex({2, 7});
-  simpl.RemoveComplex({1, 2});
+  simpl.AddSimplex({1, 2, 3});
+  simpl.AddSimplex({3, 4});
+  simpl.AddSimplex({4, 5, 6});
+  simpl.AddSimplex({4, 5, 7});
+  simpl.AddSimplex({6, 7});
+  simpl.AddSimplex({2, 7});
+  simpl.RemoveSimplex({1, 2});
 
   REQUIRE(simpl.EulerCharacteristic() == -1);
   simpl.Clear();
 
-  simpl.AddComplex({1, 2, 3, 4});
-  simpl.AddComplex({1, 5, 6});
+  simpl.AddSimplex({1, 2, 3, 4});
+  simpl.AddSimplex({1, 5, 6});
   REQUIRE(simpl.EulerCharacteristic() == +1);
+}
+
+TEST_CASE("Check sign of permutation") {
+  REQUIRE(Hasse::CalculateSign({1}, {1, 2, 3, 4}) == 1);
+  REQUIRE(Hasse::CalculateSign({2}, {1, 2, 3, 4}) == -1);
+  REQUIRE(Hasse::CalculateSign({3}, {1, 2, 3, 4}) == 1);
+  REQUIRE(Hasse::CalculateSign({4}, {1, 2, 3, 4}) == -1);
+  REQUIRE(Hasse::CalculateSign({2, 4}, {1, 2, 3, 4}) == -1);
+  REQUIRE(Hasse::CalculateSign({1, 2, 3}, {1, 2, 3, 4}) == 1);
+  REQUIRE(Hasse::CalculateSign({2, 3, 4}, {1, 2, 3, 4}) == -1);
+
+  REQUIRE(Hasse::CalculateSign({2}, {2, 3}) == 1);
+  REQUIRE(Hasse::CalculateSign({3}, {2, 3}) == -1);
 }

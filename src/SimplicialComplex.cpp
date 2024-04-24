@@ -3,14 +3,14 @@
 #include <thread>
 #include <stdexcept>
 
-void SimplicialComplex::AddComplex(std::vector<int> complex) {
-  std::sort(complex.begin(), complex.end());
-  hasse_.RecursiveAddNode(complex);
+void SimplicialComplex::AddSimplex(std::vector<int> simplex) {
+  std::sort(simplex.begin(), simplex.end());
+  hasse_.RecursiveAddNode(simplex);
 }
 
-void SimplicialComplex::RemoveComplex(std::vector<int> complex) {
-  std::sort(complex.begin(), complex.end());
-  hasse_.RemoveNode(complex);
+void SimplicialComplex::RemoveSimplex(std::vector<int> simplex) {
+  std::sort(simplex.begin(), simplex.end());
+  hasse_.RemoveNode(simplex);
 }
 
 void AddCofaces(const std::vector<std::vector<int>>& g, int depth,
@@ -167,6 +167,24 @@ SimplicialComplex* SimplicialComplex::CreateCliqueGraph(
 
 std::vector<std::vector<int>> SimplicialComplex::GetMaxSimplices() {
   return this->GetMaxFaces();
+}
+
+void SimplicialComplex::BuildFromDowkerComplex(
+    std::vector<std::vector<int>> binary) {
+  /// TODO: add check on matrix size
+  Clear();
+  if (binary.empty()) {
+    return;
+  }
+  for (size_t j = 0; j < binary[0].size(); j++) {
+    std::vector<int> simpl;
+    for (size_t i = 0; i < binary.size(); i++) {
+      if (binary[i][j]) {
+        simpl.push_back(i);
+      }
+    }
+    AddSimplex(simpl);
+  }
 }
 
 void Merge(SimplicialComplex* current, SimplicialComplex* other) {

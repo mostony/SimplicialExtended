@@ -1,5 +1,6 @@
 #include "Node.h"
 #include <algorithm>
+#include <stdexcept>
 
 Node::Node() {
 }
@@ -16,4 +17,11 @@ Node::Node(const std::vector<int>& node, int init_rank) {
   sort(data.begin(), data.end());
   rank = init_rank;
   size = node.size();
+}
+
+void Node::UpdateWeight(double new_weight) {
+  if (new_weight <= 0) {
+    throw std::runtime_error("weight should be positive");
+  }
+  weight = new_weight;
 }

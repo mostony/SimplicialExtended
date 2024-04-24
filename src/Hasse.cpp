@@ -2,12 +2,15 @@
 #include "Node.h"
 
 #include <cassert>
+#include <functional>
 #include <queue>
 #include <set>
 #include <stdexcept>
 
 #include <algorithm>
 #include <vector>
+
+#include <Eigen/Dense>
 
 Node* Hasse::GetNode(const std::vector<int>& node) {
   assert(is_sorted(node.begin(), node.end()));
@@ -84,6 +87,24 @@ void Hasse::RecursiveRemoveNode(const std::vector<int>& remove_node) {
   }
 }
 
+void Hasse::Threshold(std::function<bool(std::vector<int>)> is_good) {
+  ResetCache();
+
+  std::vector<int> ranks;
+  for (const auto& [rank, _] : nodes_with_fixed_rank_) {
+    ranks.push_back(rank);
+  }
+  reverse(ranks.begin(), ranks.end());
+  for (auto rank : ranks) {
+    auto nodes = GetNodesWithFixedRank(rank);
+    for (auto node : nodes) {
+      if (!is_good(node->data)) {
+        RemoveNode(node->data);
+      }
+    }
+  }
+}
+
 void Hasse::ResetCache() {
   cache_degree_.clear();
   cache_incidence_.clear();
@@ -150,8 +171,10 @@ std::vector<std::vector<int>> Hasse::GetMaxFaces() {
 
 std::vector<std::vector<int>> Hasse::GetAllElements() {
   std::vector<std::vector<int>> result;
-  for (auto& [id, node] : mapping_) {
-    result.push_back(node->data);
+  for (auto& [rank, nodes] : nodes_with_fixed_rank_) {
+    for (auto node : nodes) {
+      result.push_back(node->data);
+    }
   }
   return result;
 }
@@ -164,7 +187,7 @@ std::vector<std::vector<int>> Hasse::IncidenceMatrix(int p, int k) {
   if (k < p) {
     throw std::runtime_error("k < size of node");
   }
-  // p->k
+  // p <= k
   if (cache_incidence_.count(std::make_pair(k, p))) {
     return cache_incidence_[std::make_pair(k, p)];
   }
@@ -177,20 +200,25 @@ std::vector<std::vector<int>> Hasse::IncidenceMatrix(int p, int k) {
                                        std::vector<int>(upper.size()));
   for (size_t i = 0; i < lower.size(); i++) {
     for (size_t j = 0; j < upper.size(); j++) {
-      result[i][j] = (Hasse::In(lower[i]->data, upper[j]->data));
+      if (Hasse::In(lower[i]->data, upper[j]->data)) {
+        result[i][j] = 1;
+      }
     }
   }
   cache_incidence_[std::make_pair(k, p)] = std::move(result);
   return cache_incidence_[std::make_pair(k, p)];
 }
 
-std::vector<std::vector<int>> Hasse::DegreeMatrix(int p, int k) {
+std::vector<std::vector<double>> Hasse::DegreeMatrix(int p, int k,
+                                                     bool weighted) {
   if (k < p) {
-    throw std::runtime_error("k < size of node");
+    throw std::runtime_error("k < p");
   }
   if (cache_degree_.count(std::make_pair(k, p))) {
     return cache_degree_[std::make_pair(k, p)];
   }
+
+  std::vector<Node*> upper = GetNodesWithFixedRank(k);
 
   auto incidence = IncidenceMatrix(p, k);
   if (incidence.empty()) {
@@ -199,14 +227,25 @@ std::vector<std::vector<int>> Hasse::DegreeMatrix(int p, int k) {
 
   int size = incidence.size();
   int inter_size = incidence[0].size();
-  std::vector<std::vector<int>> result(size, std::vector<int>(size));
+  std::vector<std::vector<double>> result(size, std::vector<double>(size));
   for (size_t i = 0; i < size; i++) {
     for (size_t j = 0; j < size; j++) {
+      if (i == j) {
+        continue;
+      }
+      std::vector<double> weights;
       for (size_t k = 0; k < inter_size; k++) {
         if (incidence[i][k] && incidence[j][k]) {
-          result[i][j] = true;
-          break;
+          if (!weighted) {
+            result[i][j] = 1.0;
+            break;
+          } else {
+            weights.push_back(upper[k]->weight);
+          }
         }
+      }
+      if (weighted && !weights.empty()) {
+        result[i][j] = *std::min_element(weights.begin(), weights.end());
       }
     }
   }
@@ -329,6 +368,16 @@ int Hasse::SNF(std::vector<std::vector<int>> mat) {
   return std::min(rows, cols);
 }
 
+int Hasse::GetPositionInFixedRank(std::vector<int> node) {
+  std::vector<Node*> nodes = GetNodesWithFixedRank(GetNode(node)->rank);
+  for (size_t i = 0; i < nodes.size(); i++) {
+    if (nodes[i]->data == node) {
+      return i;
+    }
+  }
+  throw std::runtime_error("unknown node");
+}
+
 int Hasse::BettiNumber(int k) {
   /// TODO: add runtime checks
   /// TODO: check code
@@ -349,6 +398,70 @@ int Hasse::BettiNumber(int k) {
   return kernel - image;
 }
 
+int Hasse::CalculateSign(const std::vector<int>& subset,
+                         const std::vector<int>& set) {
+  int inv = 0;
+  for (size_t i = 0, j = 0; i < subset.size(); i++) {
+    while (set[j] != subset[i]) {
+      j += 1;
+    }
+    inv += j - i;
+  }
+  return inv % 2 == 1 ? -1 : +1;
+}
+
+std::vector<std::vector<double>> Hasse::BoundaryMatrix(int k, int p) {
+  if (k <= p) {
+    throw std::runtime_error("k <= p");
+  }
+
+  std::vector<Node*> lower = GetNodesWithFixedRank(p);
+
+  std::vector<Node*> upper = GetNodesWithFixedRank(k);
+
+  std::vector<std::vector<double>> result(lower.size(),
+                                          std::vector<double>(upper.size()));
+
+  for (size_t i = 0; i < lower.size(); i++) {
+    for (size_t j = 0; j < upper.size(); j++) {
+      if (Hasse::In(lower[i]->data, upper[j]->data)) {
+        result[i][j] = CalculateSign(lower[i]->data, upper[j]->data);
+      }
+    }
+  }
+  return result;
+}
+
+MyMatrix ConvertToMatrix(std::vector<std::vector<double>> data) {
+  size_t rows = data.size();
+  size_t cols = (rows > 0 ? data[0].size() : 0);
+  std::vector<double> flattened;
+  for (size_t j = 0; j < cols; j++) {
+    for (size_t i = 0; i < rows; i++) {
+      flattened.push_back(data[i][j]);
+    }
+  }
+  return Eigen::Map<MyMatrix>(flattened.data(), rows, cols);
+}
+
+MyMatrix Hasse::LaplacianMatrix(int k, int p, int q, bool weighted) {
+  if (p >= k || k >= q) {
+    throw std::runtime_error("Should be p < k < q!");
+  }
+  assert(p < k && k < q);
+  auto b1 = ConvertToMatrix(BoundaryMatrix(k, p));
+  auto b2 = ConvertToMatrix(BoundaryMatrix(q, k));
+  if (!weighted) {
+    return b1.transpose() * b1 + b2 * b2.transpose();
+  } else {
+    auto wp = WeightedMatrix(p);
+    auto wk = WeightedMatrix(k);
+    auto wq = WeightedMatrix(q);
+    return b1.transpose() * wp.inverse() * b1 * wk +
+           wk.inverse() * b2 * wq * b2.transpose();
+  }
+}
+
 void Merge(Hasse& current, Hasse& other) {
   for (auto& [key, value] : other.mapping_) {
     current.mapping_[key] = std::move(value);
@@ -366,11 +479,9 @@ std::vector<std::vector<int>> Hasse::Incidence(const std::vector<int>& node,
   std::vector<Node*> upper = GetNodesWithFixedRank(k);
   std::vector<Node*> lower = GetNodesWithFixedRank(p);
 
-  size_t row = 0;
-  while (lower[row]->data != node) {
-    row += 1;
-  }
-  // TODO: make bitset or just links
+  size_t row = GetPositionInFixedRank(node);
+
+  /// TODO: make bitset or just links
   for (size_t col = 0; col < mat[row].size(); col++) {
     if (mat[row][col]) {
       result.push_back(upper[col]->data);
@@ -391,10 +502,7 @@ std::vector<std::vector<int>> Hasse::Adjacency(const std::vector<int>& node,
 
   std::vector<Node*> nodes = GetNodesWithFixedRank(p);
 
-  size_t row = 0;
-  while (nodes[row]->data != node) {
-    row += 1;
-  }
+  size_t row = GetPositionInFixedRank(node);
 
   for (size_t col = 0; col < mat[row].size(); col++) {
     if (mat[row][col]) {
@@ -404,11 +512,24 @@ std::vector<std::vector<int>> Hasse::Adjacency(const std::vector<int>& node,
   return result;
 }
 
-int Hasse::Degree(const std::vector<int>& node, int k) {
-  return Adjacency(node, k).size();
+double Hasse::Degree(const std::vector<int>& node, int k, bool weighted) {
+  if (!weighted) {
+    return Adjacency(node, k).size();
+  } else {
+    auto adj = Adjacency(node, k);
+    if (adj.empty()) {
+      return 0.0;
+    }
+    double sum = 0;
+    for (auto v : adj) {
+      sum += GetNode(v)->weight;
+    }
+    return sum;
+    // return sum / adj.size();
+  }
 }
 
-double Hasse::Closeness(std::vector<int> node, int max_rank) {
+double Hasse::Closeness(std::vector<int> node, int max_rank, bool weighted) {
   if (!mapping_.count(node)) {
     throw std::runtime_error("No such node");
   }
@@ -421,34 +542,49 @@ double Hasse::Closeness(std::vector<int> node, int max_rank) {
     throw std::runtime_error("no other nodes");
   }
 
-  auto g = DegreeMatrix(k, max_rank);
+  auto g = DegreeMatrix(k, max_rank, weighted);
   int n = g.size();
+  size_t start = GetPositionInFixedRank(node);
 
-  std::vector<int> dist(n, n);
-  std::queue<int> q;
-
-  std::vector<Node*> tmp = GetNodesWithFixedRank(k);
-
-  size_t start = 0;
-  while (tmp[start]->data != node) {
-    start += 1;
-  }
-  q.push(start);
+  double sum_distances = 0.0;
+  int visited = 0;
+  std::vector<double> dist(n, n + 1);
   dist[start] = 0;
-  while (!q.empty()) {
-    int v = q.front();
-    q.pop();
-    for (int u = 0; u < n; u++) {
-      if (g[v][u] && dist[u] > dist[v] + 1) {
-        dist[u] = dist[v] + 1;
-        q.push(u);
+
+  if (!weighted) {
+    std::queue<int> q;
+    q.push(start);
+    while (!q.empty()) {
+      int v = q.front();
+      q.pop();
+      for (int u = 0; u < n; u++) {
+        if (g[v][u] && dist[u] > dist[v] + 1) {
+          dist[u] = dist[v] + 1;
+          q.push(u);
+        }
+      }
+    }
+  } else {
+    std::priority_queue<std::pair<double, int>> q;
+    q.push({-dist[start], start});
+    while (!q.empty()) {
+      auto v = q.top().second;
+      auto cur_d = -q.top().first;
+      q.pop();
+      if (cur_d > dist[v]) {
+        continue;
+      }
+      for (int u = 0; u < n; u++) {
+        if (g[v][u] > 0 && dist[u] > dist[v] + g[v][u]) {
+          dist[u] = dist[v] + g[v][u];
+          q.push({-dist[u], u});
+        }
       }
     }
   }
-  int sum_distances = 0;
-  int visited = 0;
+
   for (int v = 0; v < n; v++) {
-    if (dist[v] != n) {
+    if (dist[v] < n) {
       sum_distances += dist[v];
       visited += 1;
     }
@@ -456,7 +592,6 @@ double Hasse::Closeness(std::vector<int> node, int max_rank) {
 
   /// TODO: now norming by number of visisted nodes
   /// including self
-
   if (visited == 1) {  // node isolated
     return 0.0;
   }
@@ -466,7 +601,7 @@ double Hasse::Closeness(std::vector<int> node, int max_rank) {
   return 1 / avg_sum_distance;
 }
 
-double Hasse::Betweenness(std::vector<int> node, int max_rank) {
+double Hasse::Betweenness(std::vector<int> node, int max_rank, bool weighted) {
   if (!mapping_.count(node)) {
     throw std::runtime_error("No such node");
   }
@@ -479,67 +614,109 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank) {
     throw std::runtime_error("too low other nodes");
   }
 
-  auto g = DegreeMatrix(k, max_rank);
+  auto g = DegreeMatrix(k, max_rank, weighted);
   int n = g.size();
 
   std::vector<Node*> nodes = GetNodesWithFixedRank(k);
 
-  size_t ind_node = 0;
-  while (nodes[ind_node]->data != node) {
-    ind_node += 1;
-  }
+  size_t index_chosen_node = GetPositionInFixedRank(node);
+
   double sum_distances = 0;
 
   for (size_t i = 0; i < nodes.size(); i++) {
     auto s = nodes[i];
-    if (i == ind_node) {
+    if (i == index_chosen_node) {
       continue;
     }
-    std::vector<int> dist(n, n);
+    std::vector<double> dist(n, n);
     std::vector<int> shortest_path_cnt(n, 0);
     std::vector<std::pair<int, int>> shortest_path_through_node_cnt(
         n, {0, 0});  // (cnt, visited)
-    std::queue<int> q;
     dist[i] = 0;
-    q.push(i);
     shortest_path_cnt[i] = 1;
     shortest_path_through_node_cnt[i] = {1, 0};
-
-    while (!q.empty()) {
-      int v = q.front();
-      q.pop();
-      if (v == ind_node) {
-        shortest_path_through_node_cnt[v].second = true;
-      }
-      for (int u = 0; u < n; u++) {
-        if (!g[v][u]) {
-          continue;
+    if (!weighted) {
+      std::queue<int> q;
+      q.push(i);
+      while (!q.empty()) {
+        int v = q.front();
+        q.pop();
+        if (v == index_chosen_node) {
+          shortest_path_through_node_cnt[v].second = true;
         }
-        if (dist[u] > dist[v] + 1) {
-          dist[u] = dist[v] + 1;
-          shortest_path_cnt[u] = shortest_path_cnt[v];
-          shortest_path_through_node_cnt[u] = shortest_path_through_node_cnt[v];
-          q.push(u);
-        } else if (dist[u] == dist[v] + 1) {
-          shortest_path_cnt[u] += shortest_path_cnt[v];
-
-          if (shortest_path_through_node_cnt[u].second == 0 &&
-              shortest_path_through_node_cnt[v].second == 1) {
+        for (int u = 0; u < n; u++) {
+          if (!g[v][u]) {
+            continue;
+          }
+          if (dist[u] > dist[v] + 1) {
+            dist[u] = dist[v] + 1;
+            shortest_path_cnt[u] = shortest_path_cnt[v];
             shortest_path_through_node_cnt[u] =
                 shortest_path_through_node_cnt[v];
-          } else if (shortest_path_through_node_cnt[u].second == 1 &&
-                     shortest_path_through_node_cnt[v].second == 0) {
-            // skip
-          } else {
-            shortest_path_through_node_cnt[u].first +=
-                shortest_path_through_node_cnt[v].first;
+            q.push(u);
+          } else if (dist[u] == dist[v] + 1) {
+            shortest_path_cnt[u] += shortest_path_cnt[v];
+
+            if (shortest_path_through_node_cnt[u].second == 0 &&
+                shortest_path_through_node_cnt[v].second == 1) {
+              shortest_path_through_node_cnt[u] =
+                  shortest_path_through_node_cnt[v];
+            } else if (shortest_path_through_node_cnt[u].second == 1 &&
+                       shortest_path_through_node_cnt[v].second == 0) {
+              // skip
+            } else {
+              shortest_path_through_node_cnt[u].first +=
+                  shortest_path_through_node_cnt[v].first;
+            }
+          }
+        }
+      }
+    } else {
+      std::priority_queue<std::pair<double, int>> q;
+      dist[i] = 0;
+      q.push({-dist[i], i});
+
+      while (!q.empty()) {
+        auto v = q.top().second;
+        auto cur_d = -q.top().first;
+        q.pop();
+        if (v == index_chosen_node) {
+          shortest_path_through_node_cnt[v].second = true;
+        }
+        if (cur_d > dist[v]) {
+          continue;
+        }
+
+        for (int u = 0; u < n; u++) {
+          if (g[v][u] == 0) {
+            continue;
+          }
+          if (dist[u] > dist[v] + g[v][u]) {
+            dist[u] = dist[v] + g[v][u];
+            shortest_path_cnt[u] = shortest_path_cnt[v];
+            shortest_path_through_node_cnt[u] =
+                shortest_path_through_node_cnt[v];
+            q.push({-dist[u], u});
+          } else if (dist[u] == dist[v] + g[v][u]) {
+            shortest_path_cnt[u] += shortest_path_cnt[v];
+
+            if (shortest_path_through_node_cnt[u].second == 0 &&
+                shortest_path_through_node_cnt[v].second == 1) {
+              shortest_path_through_node_cnt[u] =
+                  shortest_path_through_node_cnt[v];
+            } else if (shortest_path_through_node_cnt[u].second == 1 &&
+                       shortest_path_through_node_cnt[v].second == 0) {
+              // skip
+            } else {
+              shortest_path_through_node_cnt[u].first +=
+                  shortest_path_through_node_cnt[v].first;
+            }
           }
         }
       }
     }
-
     for (int u = i + 1; u < n; u++) {
-      if (u == ind_node) {
+      if (u == index_chosen_node) {
         continue;
       }
       int num = shortest_path_through_node_cnt[u].first *
@@ -558,25 +735,24 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank) {
 }
 
 std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessAll(
-    int p, int max_rank) {
-  auto g = DegreeMatrix(p, max_rank);
-  int n = g.size();
+    int p, int max_rank, bool weighted) {
+  int n = nodes_with_fixed_rank_[p].size();
   std::vector<std::pair<std::vector<int>, double>> result;
   std::vector<Node*> nodes = GetNodesWithFixedRank(p);
   for (auto node : nodes) {
-    result.emplace_back(node->data, Closeness(node->data, max_rank));
+    result.emplace_back(node->data, Closeness(node->data, max_rank, weighted));
   }
   return result;
 }
 
 std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(
-    int p, int max_rank) {
-  auto g = DegreeMatrix(p, max_rank);
-  int n = g.size();
+    int p, int max_rank, bool weighted) {
+  int n = nodes_with_fixed_rank_[p].size();
   std::vector<std::pair<std::vector<int>, double>> result;
   std::vector<Node*> nodes = GetNodesWithFixedRank(p);
   for (auto node : nodes) {
-    result.emplace_back(node->data, Betweenness(node->data, max_rank));
+    result.emplace_back(node->data,
+                        Betweenness(node->data, max_rank, weighted));
   }
   return result;
 }
@@ -584,6 +760,30 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(
 void Hasse::AddFunction(std::string name,
                         std::function<double(std::vector<int>)> func) {
   custom_function_[name] = func;
+}
+
+void Hasse::RemoveFunction(std::string name) {
+  custom_function_.erase(name);
+}
+
+std::vector<std::vector<double>> Hasse::FeaturesMatrix(int rank) {
+  auto nodes = GetNodesWithFixedRank(rank);
+
+  std::vector<std::function<double(std::vector<int>)>> features;
+  for (const auto& [name, func] : custom_function_) {
+    features.emplace_back(func);
+  }
+
+  int l = nodes.size();
+  int d = custom_function_.size();
+
+  std::vector<std::vector<double>> result(l, std::vector<double>(d));
+  for (size_t i = 0; i < l; i++) {
+    for (size_t j = 0; j < d; j++) {
+      result[i][j] = features[j](nodes[i]->data);
+    }
+  }
+  return result;
 }
 
 std::vector<Node*> Hasse::GetNodesWithFixedRank(int rank) {
@@ -597,18 +797,48 @@ void Hasse::ThresholdAbove(std::string name, double threshold) {
     throw std::runtime_error("no such function");
   }
   auto& func = custom_function_[name];
+  auto is_good = [&](std::vector<int> node) {
+    return func(node) < threshold;
+  };
+  Threshold(is_good);
+}
+
+void Hasse::ThresholdBelow(std::string name, double threshold) {
+  if (!custom_function_.count(name)) {
+    throw std::runtime_error("no such function");
+  }
+  auto& func = custom_function_[name];
+  auto is_good = [&](std::vector<int> node) {
+    return func(node) > threshold;
+  };
+  Threshold(is_good);
+}
+
+void Hasse::UpdateWeight(std::vector<int> node, double new_weight) {
   ResetCache();
-  std::vector<int> ranks;
-  for (const auto& [rank, _] : nodes_with_fixed_rank_) {
-    ranks.push_back(rank);
+  assert(is_sorted(node.begin(), node.end()));
+  if (!mapping_.count(node)) {
+    throw std::runtime_error("no such node exists");
   }
-  reverse(ranks.begin(), ranks.end());
-  for (auto rank : ranks) {
-    auto nodes = GetNodesWithFixedRank(rank);
-    for (auto node : nodes) {
-      if (func(node->data) >= threshold) {
-        RemoveNode(node->data);
-      }
-    }
+  auto n = mapping_[node].get();
+  n->UpdateWeight(new_weight);
+}
+
+// std::vector<std::vector<double>> Hasse::GetWeights(int rank) {
+//   auto nodes = GetNodesWithFixedRank(rank);
+//   int n = nodes.size();
+//   std::vector<std::vector<double>> result(n, std::vector<double>(n));
+//   for (size_t i = 0; i < n; i++) {
+//     result[i][i] = nodes[i]->weight;
+//   }
+//   return result;
+// }
+
+MyMatrix Hasse::WeightedMatrix(int rank) {
+  auto nodes = GetNodesWithFixedRank(rank);
+  MyMatrix result(nodes.size(), nodes.size());
+  for (size_t i = 0; i < nodes.size(); i++) {
+    result(i, i) = nodes[i]->weight;
   }
+  return std::move(result);
 }

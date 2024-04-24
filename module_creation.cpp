@@ -1,6 +1,7 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 #include "pybind11/functional.h"
+#include "pybind11/complex.h"
 
 #include "src/CombinatorialComplex.h"
 #include "src/Graph.h"
@@ -14,9 +15,17 @@ PYBIND11_MODULE(simpl, m) {
   py::class_<SimplicialComplex>(m, "SimplicialComplex")
       .def(py::init<>())
       .def("AddFunction", &SimplicialComplex::AddFunction)
+      .def("RemoveFunction", &SimplicialComplex::RemoveFunction)
+      .def("FeaturesMatrix", &SimplicialComplex::FeaturesMatrix)
+      .def("UpdateWeight", &SimplicialComplex::UpdateWeight)
+      .def("Weights", &SimplicialComplex::Weights)
+      .def("LaplacianMatrix", &SimplicialComplex::LaplacianMatrix)
+      .def("EigenValues", &SimplicialComplex::EigenValues)
       .def("ThresholdAbove", &SimplicialComplex::ThresholdAbove)
-      .def("AddComplex", &SimplicialComplex::AddComplex)
-      .def("RemoveComplex", &SimplicialComplex::RemoveComplex)
+      .def("ThresholdBelow", &SimplicialComplex::ThresholdBelow)
+      .def("AddSimplex", &SimplicialComplex::AddSimplex)
+      .def("BoundaryMatrix", &SimplicialComplex::BoundaryMatrix)
+      .def("RemoveSimplex", &SimplicialComplex::RemoveSimplex)
       .def("Incidence", &SimplicialComplex::Incidence)
       .def("IncidenceDegree", &SimplicialComplex::IncidenceDegree)
       .def("Adjacency", &SimplicialComplex::Adjacency)
@@ -27,17 +36,28 @@ PYBIND11_MODULE(simpl, m) {
       .def("Betweenness", &SimplicialComplex::Betweenness)
       .def("BetweennessAll", &SimplicialComplex::BetweennessAll)
       .def("GetMaxSimplices", &SimplicialComplex::GetMaxSimplices)
+      .def("GetAll", &SimplicialComplex::GetAll)
       .def("TotalCount", &SimplicialComplex::TotalCount)
       .def("FVector", &SimplicialComplex::FVector)
       .def("Dimension", &SimplicialComplex::Dimension)
-      .def("EulerCharacteristic", &SimplicialComplex::EulerCharacteristic);
+      .def("EulerCharacteristic", &SimplicialComplex::EulerCharacteristic)
+      .def("BuildFromDowkerComplex", &SimplicialComplex::BuildFromDowkerComplex)
+      .def("Clear", &SimplicialComplex::Clear);
 
   py::class_<HyperGraph>(m, "HyperGraph")
       .def(py::init<>())
       .def("AddFunction", &HyperGraph::AddFunction)
+      .def("RemoveFunction", &HyperGraph::RemoveFunction)
+      .def("FeaturesMatrix", &HyperGraph::FeaturesMatrix)
+      .def("UpdateWeight", &HyperGraph::UpdateWeight)
+      .def("Weights", &HyperGraph::Weights)
+      .def("LaplacianMatrix", &HyperGraph::LaplacianMatrix)
+      .def("EigenValues", &HyperGraph::EigenValues)
       .def("ThresholdAbove", &HyperGraph::ThresholdAbove)
+      .def("ThresholdBelow", &HyperGraph::ThresholdBelow)
       .def("AddEdge", &HyperGraph::AddEdge)
       .def("RemoveEdge", &HyperGraph::RemoveEdge)
+      .def("BoundaryMatrix", &HyperGraph::BoundaryMatrix)
       .def("Incidence", &HyperGraph::Incidence)
       .def("IncidenceDegree", &HyperGraph::IncidenceDegree)
       .def("Adjacency", &HyperGraph::Adjacency)
@@ -48,17 +68,27 @@ PYBIND11_MODULE(simpl, m) {
       .def("Betweenness", &HyperGraph::Betweenness)
       .def("BetweennessAll", &HyperGraph::BetweennessAll)
       .def("GetEdges", &HyperGraph::GetEdges)
+      .def("GetAll", &HyperGraph::GetAll)
       .def("TotalCount", &HyperGraph::TotalCount)
       .def("FVector", &HyperGraph::FVector)
       .def("Dimension", &HyperGraph::Dimension)
-      .def("EulerCharacteristic", &HyperGraph::EulerCharacteristic);
+      .def("EulerCharacteristic", &HyperGraph::EulerCharacteristic)
+      .def("Clear", &HyperGraph::Clear);
 
   py::class_<Graph>(m, "Graph")
       .def(py::init<>())
       .def("AddFunction", &Graph::AddFunction)
+      .def("RemoveFunction", &Graph::RemoveFunction)
+      .def("FeaturesMatrix", &Graph::FeaturesMatrix)
+      .def("UpdateWeight", &Graph::UpdateWeight)
+      .def("Weights", &Graph::Weights)
+      .def("LaplacianMatrix", &Graph::LaplacianMatrix)
+      .def("EigenValues", &Graph::EigenValues)
       .def("ThresholdAbove", &Graph::ThresholdAbove)
+      .def("ThresholdBelow", &Graph::ThresholdBelow)
       .def("AddEdge", &Graph::AddEdge)
       .def("RemoveEdge", &Graph::RemoveEdge)
+      .def("BoundaryMatrix", &Graph::BoundaryMatrix)
       .def("Incidence", &Graph::Incidence)
       .def("IncidenceDegree", &Graph::IncidenceDegree)
       .def("Adjacency", &Graph::Adjacency)
@@ -69,16 +99,26 @@ PYBIND11_MODULE(simpl, m) {
       .def("Betweenness", &Graph::Betweenness)
       .def("BetweennessAll", &Graph::BetweennessAll)
       .def("GetEdges", &Graph::GetEdges)
+      .def("GetAll", &Graph::GetAll)
       .def("TotalCount", &Graph::TotalCount)
       .def("FVector", &Graph::FVector)
       .def("Dimension", &Graph::Dimension)
-      .def("EulerCharacteristic", &Graph::EulerCharacteristic);
+      .def("EulerCharacteristic", &Graph::EulerCharacteristic)
+      .def("Clear", &Graph::Clear);
 
   py::class_<CombinatorialComplex>(m, "CombinatorialComplex")
       .def(py::init<>())
       .def("AddFunction", &CombinatorialComplex::AddFunction)
+      .def("RemoveFunction", &CombinatorialComplex::RemoveFunction)
+      .def("FeaturesMatrix", &CombinatorialComplex::FeaturesMatrix)
+      .def("UpdateWeight", &CombinatorialComplex::UpdateWeight)
+      .def("Weights", &CombinatorialComplex::Weights)
+      .def("LaplacianMatrix", &CombinatorialComplex::LaplacianMatrix)
+      .def("EigenValues", &CombinatorialComplex::EigenValues)
       .def("ThresholdAbove", &CombinatorialComplex::ThresholdAbove)
+      .def("ThresholdBelow", &CombinatorialComplex::ThresholdBelow)
       .def("Build", &CombinatorialComplex::Build)
+      .def("BoundaryMatrix", &CombinatorialComplex::BoundaryMatrix)
       .def("Incidence", &CombinatorialComplex::Incidence)
       .def("IncidenceDegree", &CombinatorialComplex::IncidenceDegree)
       .def("Adjacency", &CombinatorialComplex::Adjacency)
@@ -89,8 +129,10 @@ PYBIND11_MODULE(simpl, m) {
       .def("Betweenness", &CombinatorialComplex::Betweenness)
       .def("BetweennessAll", &CombinatorialComplex::BetweennessAll)
       .def("GetEdges", &CombinatorialComplex::GetSubsets)
+      .def("GetAll", &CombinatorialComplex::GetAll)
       .def("TotalCount", &CombinatorialComplex::TotalCount)
       .def("FVector", &CombinatorialComplex::FVector)
       .def("Dimension", &CombinatorialComplex::Dimension)
-      .def("EulerCharacteristic", &CombinatorialComplex::EulerCharacteristic);
+      .def("EulerCharacteristic", &CombinatorialComplex::EulerCharacteristic)
+      .def("Clear", &CombinatorialComplex::Clear);
 }

@@ -5,9 +5,9 @@
 
 class SimplicialComplex : public AbstractModel {
  public:
-  void AddComplex(std::vector<int> complex);
+  void AddSimplex(std::vector<int> simplex);
 
-  void RemoveComplex(std::vector<int> complex);
+  void RemoveSimplex(std::vector<int> simplex);
 
   /// merge two non intersecting SimplicialComplex
   friend void Merge(SimplicialComplex* current, SimplicialComplex* other);
@@ -21,4 +21,7 @@ class SimplicialComplex : public AbstractModel {
   friend void AddCofaces(const std::vector<std::vector<int>>& g, int depth,
                          int max_depth, std::vector<int> cur_node,
                          std::vector<int> neighbors, SimplicialComplex* simpl);
+
+  /// binary[i][j] = 1 -> j-th simplex contains i element
+  void BuildFromDowkerComplex(std::vector<std::vector<int>> binary);
 };
