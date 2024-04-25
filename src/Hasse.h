@@ -10,7 +10,10 @@
 
 #include <Eigen/Dense>
 
-typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MyMatrix;
+// long double throws bad::alloc on laplacian weighted for some reason
+typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MyMatrixDouble;
+
+typedef Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> MyMatrixInt;
 
 class Hasse {
  public:
@@ -77,10 +80,10 @@ class Hasse {
   /* ---------------------- boundary ---------------------- */
 
   /// C_k -> C_p
-  std::vector<std::vector<double>> BoundaryMatrix(int k, int p);
+  MyMatrixInt BoundaryMatrix(int k, int p);
 
   /// p < k < q
-  MyMatrix LaplacianMatrix(int k, int p, int q, bool weighted);
+  MyMatrixDouble LaplacianMatrix(int k, int p, int q, bool weighted);
 
   /* --------------------- centrality --------------------- */
   double Closeness(std::vector<int> node, int max_rank, bool weighted = false);
@@ -110,7 +113,7 @@ class Hasse {
   static int CalculateSign(const std::vector<int>& subset,
                            const std::vector<int>& set);
 
-  MyMatrix WeightedMatrix(int rank);
+  Eigen::DiagonalMatrix<double, Eigen::Dynamic> WeightedMatrix(int rank);
 
  private:
   void RecursiveRemoveNode(const std::vector<int>& node);

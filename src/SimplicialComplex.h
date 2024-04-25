@@ -22,6 +22,8 @@ class SimplicialComplex : public AbstractModel {
                          int max_depth, std::vector<int> cur_node,
                          std::vector<int> neighbors, SimplicialComplex* simpl);
 
-  /// binary[i][j] = 1 -> j-th simplex contains i element
-  void BuildFromDowkerComplex(std::vector<std::vector<int>> binary);
+  /// on_column = true -- every column is simplex
+  /// on_column = false -- every row is simplex
+  void BuildFromDowkerComplex(std::vector<std::vector<int>> binary,
+                              bool on_column);
 };

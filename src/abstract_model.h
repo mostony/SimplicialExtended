@@ -56,8 +56,7 @@ class AbstractModel {
 
   std::vector<std::vector<double>> LaplacianMatrix(int k, int p, int q,
                                                    bool weighted = false);
-  std::vector<std::complex<double>> EigenValues(int k, int p, int q,
-                                                bool weighted = false);
+  std::vector<double> EigenValues(int k, int p, int q, bool weighted = false);
 
  protected:
   Hasse hasse_;

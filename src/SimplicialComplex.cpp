@@ -127,16 +127,16 @@ SimplicialComplex* SimplicialComplex::CreateCliqueGraph(
         for (auto middle : cur_layer) {
           auto middle_node = thread_result->hasse_.GetNode(middle);
           for (auto sigma1 : middle_node->upper) {
-            int v1 = sigma1.back();
+            int v1 = sigma1->data.back();
             for (auto sigma2 : middle_node->upper) {
-              int v2 = sigma2.back();
+              int v2 = sigma2->data.back();
               if (v1 > v2 && g[v1][v2]) {
-                auto new_data = sigma1;
+                auto new_data = sigma1->data;
                 new_data.push_back(v2);
-                thread_result->hasse_.AddArc(sigma1, new_data);
+                thread_result->hasse_.AddArc(sigma1->data, new_data);
               }
             }
-            next_layer.push_back(sigma1);
+            next_layer.push_back(sigma1->data);
           }
         }
         std::swap(cur_layer, next_layer);
@@ -170,20 +170,32 @@ std::vector<std::vector<int>> SimplicialComplex::GetMaxSimplices() {
 }
 
 void SimplicialComplex::BuildFromDowkerComplex(
-    std::vector<std::vector<int>> binary) {
+    std::vector<std::vector<int>> binary, bool on_column) {
   /// TODO: add check on matrix size
   Clear();
   if (binary.empty()) {
     return;
   }
-  for (size_t j = 0; j < binary[0].size(); j++) {
-    std::vector<int> simpl;
+  if (on_column == false) {
     for (size_t i = 0; i < binary.size(); i++) {
-      if (binary[i][j]) {
-        simpl.push_back(i);
+      std::vector<int> simpl;
+      for (size_t j = 0; j < binary[i].size(); j++) {
+        if (binary[i][j]) {
+          simpl.push_back(j);
+        }
       }
+      AddSimplex(simpl);
     }
-    AddSimplex(simpl);
+  } else {
+    for (size_t j = 0; j < binary[0].size(); j++) {
+      std::vector<int> simpl;
+      for (size_t i = 0; i < binary.size(); i++) {
+        if (binary[i][j]) {
+          simpl.push_back(i);
+        }
+      }
+      AddSimplex(simpl);
+    }
   }
 }
 

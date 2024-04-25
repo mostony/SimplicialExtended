@@ -1,13 +1,17 @@
 #include "Hasse.h"
+#include "Eigen/src/Core/DiagonalMatrix.h"
+#include "Eigen/src/Core/util/Constants.h"
 #include "Node.h"
 
 #include <cassert>
 #include <functional>
+#include <initializer_list>
 #include <queue>
 #include <set>
 #include <stdexcept>
 
 #include <algorithm>
+#include <unordered_map>
 #include <vector>
 
 #include <Eigen/Dense>
@@ -25,8 +29,8 @@ void Hasse::AddArc(const std::vector<int>& from, const std::vector<int>& to) {
   ResetCache();
   auto low = GetNode(from);
   auto up = GetNode(to);
-  low->upper.push_back(to);
-  up->lower.push_back(from);
+  low->upper.push_back(up);
+  up->lower.push_back(low);
 }
 
 /// TODO: add remove from mapping
@@ -40,14 +44,14 @@ void Hasse::RemoveArc(const std::vector<int>& from,
   auto low = GetNode(from);
   auto up = GetNode(to);
   for (auto it = low->upper.begin(); it != low->upper.end(); it++) {
-    if (*it == to) {
+    if ((*it)->data == to) {
       low->upper.erase(it);
       break;
     }
   }
 
   for (auto it = up->lower.begin(); it != up->lower.end(); it++) {
-    if (*it == from) {
+    if ((*it)->data == from) {
       up->lower.erase(it);
       break;
     }
@@ -67,15 +71,15 @@ void Hasse::RecursiveRemoveNode(const std::vector<int>& remove_node) {
     nodes_with_fixed_rank_[node->rank].erase(node);
 
     for (const auto& nxt : node->upper) {
-      if (!used.count(nxt)) {
-        used.insert(nxt);
-        q.push(nxt);
+      if (!used.count(nxt->data)) {
+        used.insert(nxt->data);
+        q.push(nxt->data);
       }
     }
 
     while (!node->lower.empty()) {
       const auto& prev = node->lower.back();
-      RemoveArc(prev, top);
+      RemoveArc(prev->data, top);
     }
 
     node->upper.clear();
@@ -400,6 +404,7 @@ int Hasse::BettiNumber(int k) {
 
 int Hasse::CalculateSign(const std::vector<int>& subset,
                          const std::vector<int>& set) {
+  assert(Hasse::In(subset, set));
   int inv = 0;
   for (size_t i = 0, j = 0; i < subset.size(); i++) {
     while (set[j] != subset[i]) {
@@ -410,7 +415,7 @@ int Hasse::CalculateSign(const std::vector<int>& subset,
   return inv % 2 == 1 ? -1 : +1;
 }
 
-std::vector<std::vector<double>> Hasse::BoundaryMatrix(int k, int p) {
+MyMatrixInt Hasse::BoundaryMatrix(int k, int p) {
   if (k <= p) {
     throw std::runtime_error("k <= p");
   }
@@ -418,42 +423,40 @@ std::vector<std::vector<double>> Hasse::BoundaryMatrix(int k, int p) {
   std::vector<Node*> lower = GetNodesWithFixedRank(p);
 
   std::vector<Node*> upper = GetNodesWithFixedRank(k);
-
-  std::vector<std::vector<double>> result(lower.size(),
-                                          std::vector<double>(upper.size()));
-
+  std::unordered_map<Node*, int> positions;
+  for (size_t i = 0; i < upper.size(); i++) {
+    auto up = upper[i];
+    positions[up] = i;
+  }
+  MyMatrixInt result = MyMatrixInt::Zero(lower.size(), upper.size());
   for (size_t i = 0; i < lower.size(); i++) {
-    for (size_t j = 0; j < upper.size(); j++) {
-      if (Hasse::In(lower[i]->data, upper[j]->data)) {
-        result[i][j] = CalculateSign(lower[i]->data, upper[j]->data);
-      }
+    auto neighbors = lower[i]->GetAllUpper(k);
+    for (auto up : neighbors) {
+      auto pos = positions[up];
+      assert(pos < upper.size() && upper[pos] == up);
+      result(i, pos) = CalculateSign(lower[i]->data, upper[pos]->data);
     }
   }
   return result;
 }
 
-MyMatrix ConvertToMatrix(std::vector<std::vector<double>> data) {
-  size_t rows = data.size();
-  size_t cols = (rows > 0 ? data[0].size() : 0);
-  std::vector<double> flattened;
-  for (size_t j = 0; j < cols; j++) {
-    for (size_t i = 0; i < rows; i++) {
-      flattened.push_back(data[i][j]);
-    }
-  }
-  return Eigen::Map<MyMatrix>(flattened.data(), rows, cols);
-}
-
-MyMatrix Hasse::LaplacianMatrix(int k, int p, int q, bool weighted) {
+MyMatrixDouble Hasse::LaplacianMatrix(int k, int p, int q, bool weighted) {
   if (p >= k || k >= q) {
     throw std::runtime_error("Should be p < k < q!");
   }
   assert(p < k && k < q);
-  auto b1 = ConvertToMatrix(BoundaryMatrix(k, p));
-  auto b2 = ConvertToMatrix(BoundaryMatrix(q, k));
   if (!weighted) {
-    return b1.transpose() * b1 + b2 * b2.transpose();
+    auto b1 = BoundaryMatrix(k, p);
+    auto b2 = BoundaryMatrix(q, k);
+    auto result = b1.transpose() * b1 + b2 * b2.transpose();
+    return result.cast<double>();
   } else {
+    // important lines, can't cast from temporary object
+    auto raw_b1 = BoundaryMatrix(k, p);
+    auto raw_b2 = BoundaryMatrix(q, k);
+
+    auto b1 = raw_b1.cast<double>();
+    auto b2 = raw_b2.cast<double>();
     auto wp = WeightedMatrix(p);
     auto wk = WeightedMatrix(k);
     auto wq = WeightedMatrix(q);
@@ -824,21 +827,11 @@ void Hasse::UpdateWeight(std::vector<int> node, double new_weight) {
   n->UpdateWeight(new_weight);
 }
 
-// std::vector<std::vector<double>> Hasse::GetWeights(int rank) {
-//   auto nodes = GetNodesWithFixedRank(rank);
-//   int n = nodes.size();
-//   std::vector<std::vector<double>> result(n, std::vector<double>(n));
-//   for (size_t i = 0; i < n; i++) {
-//     result[i][i] = nodes[i]->weight;
-//   }
-//   return result;
-// }
-
-MyMatrix Hasse::WeightedMatrix(int rank) {
+Eigen::DiagonalMatrix<double, Eigen::Dynamic> Hasse::WeightedMatrix(int rank) {
   auto nodes = GetNodesWithFixedRank(rank);
-  MyMatrix result(nodes.size(), nodes.size());
+  Eigen::DiagonalMatrix<double, Eigen::Dynamic> result(nodes.size());
   for (size_t i = 0; i < nodes.size(); i++) {
-    result(i, i) = nodes[i]->weight;
+    result.diagonal()[i] = nodes[i]->weight;
   }
   return std::move(result);
 }
