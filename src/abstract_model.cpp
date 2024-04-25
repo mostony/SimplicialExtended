@@ -1,7 +1,4 @@
 #include "abstract_model.h"
-#include "Eigen/src/Core/Matrix.h"
-#include "Eigen/src/Core/util/Constants.h"
-#include "Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h"
 #include "Hasse.h"
 
 int AbstractModel::HasseSize() {

@@ -1,11 +1,8 @@
 #include "Hasse.h"
-#include "Eigen/src/Core/DiagonalMatrix.h"
-#include "Eigen/src/Core/util/Constants.h"
 #include "Node.h"
 
 #include <cassert>
 #include <functional>
-#include <initializer_list>
 #include <queue>
 #include <set>
 #include <stdexcept>
@@ -13,8 +10,6 @@
 #include <algorithm>
 #include <unordered_map>
 #include <vector>
-
-#include <Eigen/Dense>
 
 Node* Hasse::GetNode(const std::vector<int>& node) {
   assert(is_sorted(node.begin(), node.end()));
