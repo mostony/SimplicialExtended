@@ -10,7 +10,6 @@
 
 #include <Eigen/Dense>
 
-// long double throws bad::alloc on laplacian weighted for some reason
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MyMatrixDouble;
 
 typedef Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> MyMatrixInt;
@@ -31,7 +30,6 @@ class Hasse {
   void ThresholdBelow(std::string name, double threshold);
 
   void UpdateWeight(std::vector<int> node, double new_weight);
-  // std::vector<std::vector<double>> GetWeights(int rank);
 
   /* ---------------------- structure --------------------- */
   void AddArc(const std::vector<int>& from, const std::vector<int>& to);
@@ -63,17 +61,19 @@ class Hasse {
   /* ----------------- Incidence & Degree ----------------- */
 
   /// only 0 and 1
-  std::vector<std::vector<int>> IncidenceMatrix(int p, int k);
+  std::vector<std::vector<int>>& IncidenceMatrix(int p, int k);
 
   // min weight
-  std::vector<std::vector<double>> DegreeMatrix(int p, int k,
-                                                bool weighted = false);
+  std::vector<std::vector<double>>& DegreeMatrix(int p, int k,
+                                                 bool weighted = false);
 
   std::vector<std::vector<int>> Incidence(const std::vector<int>& node, int k);
   int IncidenceDegree(const std::vector<int>& node, int k);
 
   std::vector<std::vector<int>> Adjacency(const std::vector<int>& node, int k);
   double Degree(const std::vector<int>& node, int k, bool weighted = false);
+
+  std::vector<double> DegreeAll(int p, int k, bool weighted = false);
 
   int BettiNumber(int k);
 
@@ -107,9 +107,6 @@ class Hasse {
   /// Check if a \in b
   static bool In(const std::vector<int>& a, const std::vector<int>& b);
 
-  /// TODO: move this method out of class
-  /// TODO: change int to enum
-  /// O(n)
   static int CalculateSign(const std::vector<int>& subset,
                            const std::vector<int>& set);
 

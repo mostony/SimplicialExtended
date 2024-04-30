@@ -249,3 +249,4 @@ TEST_CASE("Check sign of permutation") {
   REQUIRE(Hasse::CalculateSign({2}, {2, 3}) == 1);
   REQUIRE(Hasse::CalculateSign({3}, {2, 3}) == -1);
 }
+

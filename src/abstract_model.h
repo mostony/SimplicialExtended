@@ -27,7 +27,8 @@ class AbstractModel {
   int IncidenceDegree(std::vector<int> node, int k);
 
   std::vector<std::vector<int>> Adjacency(std::vector<int> node, int k);
-  int Degree(std::vector<int> node, int k, bool weighted = false);
+  double Degree(std::vector<int> node, int k, bool weighted = false);
+  std::vector<double> DegreeAll(int p, int k, bool weighted = false);
 
   int BettiNumber(int k);
 

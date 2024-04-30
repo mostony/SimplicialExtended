@@ -27,8 +27,12 @@ std::vector<std::vector<int>> AbstractModel::Adjacency(std::vector<int> node,
   return hasse_.Adjacency(node, k);
 }
 
-int AbstractModel::Degree(std::vector<int> node, int k, bool weighted) {
+double AbstractModel::Degree(std::vector<int> node, int k, bool weighted) {
   return hasse_.Degree(node, k, weighted);
+}
+
+std::vector<double> AbstractModel::DegreeAll(int p, int k, bool weighted) {
+  return hasse_.DegreeAll(p, k, weighted);
 }
 
 int AbstractModel::BettiNumber(int k) {

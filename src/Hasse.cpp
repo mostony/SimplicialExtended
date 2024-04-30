@@ -3,11 +3,13 @@
 
 #include <cassert>
 #include <functional>
+#include <mutex>
 #include <queue>
 #include <set>
 #include <stdexcept>
 
 #include <algorithm>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -182,7 +184,7 @@ int Hasse::Size() {
   return mapping_.size();
 }
 
-std::vector<std::vector<int>> Hasse::IncidenceMatrix(int p, int k) {
+std::vector<std::vector<int>>& Hasse::IncidenceMatrix(int p, int k) {
   if (k < p) {
     throw std::runtime_error("k < size of node");
   }
@@ -194,22 +196,27 @@ std::vector<std::vector<int>> Hasse::IncidenceMatrix(int p, int k) {
   std::vector<Node*> lower = GetNodesWithFixedRank(p);
 
   std::vector<Node*> upper = GetNodesWithFixedRank(k);
-
+  std::unordered_map<Node*, int> positions;
+  for (size_t i = 0; i < upper.size(); i++) {
+    auto up = upper[i];
+    positions[up] = i;
+  }
   std::vector<std::vector<int>> result(lower.size(),
                                        std::vector<int>(upper.size()));
   for (size_t i = 0; i < lower.size(); i++) {
-    for (size_t j = 0; j < upper.size(); j++) {
-      if (Hasse::In(lower[i]->data, upper[j]->data)) {
-        result[i][j] = 1;
-      }
+    auto neighbors = lower[i]->GetAllUpper(k);
+    for (auto up : neighbors) {
+      auto pos = positions[up];
+      assert(pos < upper.size() && upper[pos] == up);
+      result[i][pos] = 1;
     }
   }
   cache_incidence_[std::make_pair(k, p)] = std::move(result);
   return cache_incidence_[std::make_pair(k, p)];
 }
 
-std::vector<std::vector<double>> Hasse::DegreeMatrix(int p, int k,
-                                                     bool weighted) {
+std::vector<std::vector<double>>& Hasse::DegreeMatrix(int p, int k,
+                                                      bool weighted) {
   if (k < p) {
     throw std::runtime_error("k < p");
   }
@@ -219,9 +226,10 @@ std::vector<std::vector<double>> Hasse::DegreeMatrix(int p, int k,
 
   std::vector<Node*> upper = GetNodesWithFixedRank(k);
 
-  auto incidence = IncidenceMatrix(p, k);
+  const std::vector<std::vector<int>>& incidence = IncidenceMatrix(p, k);
   if (incidence.empty()) {
-    return {};
+    cache_degree_[std::make_pair(k, p)] = {};
+    return cache_degree_[std::make_pair(k, p)];
   }
 
   int size = incidence.size();
@@ -384,14 +392,14 @@ int Hasse::BettiNumber(int k) {
   if (k == 0) {
     kernel = this->nodes_with_fixed_rank_[0].size();
   } else {
-    auto inc = IncidenceMatrix(k - 1, k);
+    const std::vector<std::vector<int>>& inc = IncidenceMatrix(k - 1, k);
     if (!inc.empty()) {
       kernel = (int)(inc[0].size()) - SNF(inc);
     }
   }
   int image = 0;
   if (nodes_with_fixed_rank_[k + 1].size() != 0) {
-    auto inc = IncidenceMatrix(k, k + 1);
+    const std::vector<std::vector<int>>& inc = IncidenceMatrix(k, k + 1);
     image = SNF(inc);
   }
   return kernel - image;
@@ -472,7 +480,7 @@ std::vector<std::vector<int>> Hasse::Incidence(const std::vector<int>& node,
   if (k < p) {
     throw std::runtime_error("k < size of node");
   }
-  auto mat = IncidenceMatrix(p, k);
+  const std::vector<std::vector<int>>& mat = IncidenceMatrix(p, k);
   std::vector<std::vector<int>> result;
   std::vector<Node*> upper = GetNodesWithFixedRank(k);
   std::vector<Node*> lower = GetNodesWithFixedRank(p);
@@ -496,7 +504,7 @@ std::vector<std::vector<int>> Hasse::Adjacency(const std::vector<int>& node,
                                                int k) {
   int p = GetNode(node)->rank;
   std::vector<std::vector<int>> result;
-  auto mat = DegreeMatrix(p, k);
+  const std::vector<std::vector<double>>& mat = DegreeMatrix(p, k);
 
   std::vector<Node*> nodes = GetNodesWithFixedRank(p);
 
@@ -527,6 +535,16 @@ double Hasse::Degree(const std::vector<int>& node, int k, bool weighted) {
   }
 }
 
+std::vector<double> Hasse::DegreeAll(int p, int k, bool weighted) {
+  int n = nodes_with_fixed_rank_[p].size();
+  std::vector<double> result;
+  std::vector<Node*> nodes = GetNodesWithFixedRank(p);
+  for (auto node : nodes) {
+    result.emplace_back(Degree(node->data, k, weighted));
+  }
+  return result;
+}
+
 double Hasse::Closeness(std::vector<int> node, int max_rank, bool weighted) {
   if (!mapping_.count(node)) {
     throw std::runtime_error("No such node");
@@ -540,7 +558,8 @@ double Hasse::Closeness(std::vector<int> node, int max_rank, bool weighted) {
     throw std::runtime_error("no other nodes");
   }
 
-  auto g = DegreeMatrix(k, max_rank, weighted);
+  const std::vector<std::vector<double>>& g =
+      DegreeMatrix(k, max_rank, weighted);
   int n = g.size();
   size_t start = GetPositionInFixedRank(node);
 
@@ -612,7 +631,8 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank, bool weighted) {
     throw std::runtime_error("too low other nodes");
   }
 
-  auto g = DegreeMatrix(k, max_rank, weighted);
+  const std::vector<std::vector<double>>& g =
+      DegreeMatrix(k, max_rank, weighted);
   int n = g.size();
 
   std::vector<Node*> nodes = GetNodesWithFixedRank(k);
@@ -722,7 +742,6 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank, bool weighted) {
       int den = shortest_path_cnt[u];
       if (den == 0) {
         continue;
-        // throw std::runtime_error("Unconnected graph");
       }
       sum_distances += 1.0 * num / den;
     }
@@ -743,15 +762,52 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessAll(
   return result;
 }
 
+#include <iostream>
 std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(
     int p, int max_rank, bool weighted) {
-  int n = nodes_with_fixed_rank_[p].size();
+  std::cout << "Bet\n";
+  size_t n = nodes_with_fixed_rank_[p].size();
   std::vector<std::pair<std::vector<int>, double>> result;
   std::vector<Node*> nodes = GetNodesWithFixedRank(p);
-  for (auto node : nodes) {
-    result.emplace_back(node->data,
-                        Betweenness(node->data, max_rank, weighted));
+  int total_threads = std::thread::hardware_concurrency();
+  std::cout << total_threads << "\n";
+
+  DegreeMatrix(p, max_rank, weighted);
+
+  auto Go = [&](int l, int r,
+                std::vector<std::pair<std::vector<int>, double>>& res) {
+    if (l >= r) {
+      return;
+    }
+    for (size_t i = l; i < r; i++) {
+      res.emplace_back(nodes[i]->data,
+                       Betweenness(nodes[i]->data, max_rank, weighted));
+    }
+  };
+
+  int chunk = std::max((int)n / total_threads, 1);
+
+  std::vector<std::vector<std::pair<std::vector<int>, double>>> part(
+      total_threads);
+  std::vector<std::thread> threads;
+
+  for (size_t i = 0; i < total_threads; i++) {
+    size_t l = i * chunk;
+    size_t r = std::min((size_t)(i + 1) * chunk, n);
+    std::thread thread(Go, l, r, std::ref(part[i]));
+    threads.emplace_back(std::move(thread));
   }
+
+  for (auto& thread : threads) {
+    thread.join();
+  }
+
+  for (const auto& p : part) {
+    for (auto x : p) {
+      result.push_back(std::move(x));
+    }
+  }
+
   return result;
 }
 
