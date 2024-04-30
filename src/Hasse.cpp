@@ -635,7 +635,7 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank, bool weighted) {
       DegreeMatrix(k, max_rank, weighted);
   int n = g.size();
 
-  std::vector<Node*> nodes = GetNodesWithFixedRank(k);
+  const std::vector<Node*>& nodes = GetNodesWithFixedRank(k);
 
   size_t index_chosen_node = GetPositionInFixedRank(node);
 
@@ -762,15 +762,12 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessAll(
   return result;
 }
 
-#include <iostream>
 std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(
     int p, int max_rank, bool weighted) {
-  std::cout << "Bet\n";
   size_t n = nodes_with_fixed_rank_[p].size();
   std::vector<std::pair<std::vector<int>, double>> result;
   std::vector<Node*> nodes = GetNodesWithFixedRank(p);
   int total_threads = std::thread::hardware_concurrency();
-  std::cout << total_threads << "\n";
 
   DegreeMatrix(p, max_rank, weighted);
 
