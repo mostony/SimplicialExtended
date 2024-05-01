@@ -753,12 +753,48 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank, bool weighted) {
 
 std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessAll(
     int p, int max_rank, bool weighted) {
-  int n = nodes_with_fixed_rank_[p].size();
+  size_t n = nodes_with_fixed_rank_[p].size();
   std::vector<std::pair<std::vector<int>, double>> result;
   std::vector<Node*> nodes = GetNodesWithFixedRank(p);
-  for (auto node : nodes) {
-    result.emplace_back(node->data, Closeness(node->data, max_rank, weighted));
+  int total_threads = std::thread::hardware_concurrency();
+
+  // to make sure, that matrix created
+  DegreeMatrix(p, max_rank, weighted);
+
+  auto Go = [&](int l, int r,
+                std::vector<std::pair<std::vector<int>, double>>& res) {
+    if (l >= r) {
+      return;
+    }
+    for (size_t i = l; i < r; i++) {
+      res.emplace_back(nodes[i]->data,
+                       Closeness(nodes[i]->data, max_rank, weighted));
+    }
+  };
+
+  int chunk = std::max((int)n / total_threads, 1);
+
+  std::vector<std::vector<std::pair<std::vector<int>, double>>> part(
+      total_threads);
+  std::vector<std::thread> threads;
+
+  for (size_t i = 0; i < total_threads; i++) {
+    size_t l = i * chunk;
+    size_t r = std::min((size_t)(i + 1) * chunk, n);
+    std::thread thread(Go, l, r, std::ref(part[i]));
+    threads.emplace_back(std::move(thread));
   }
+
+  for (auto& thread : threads) {
+    thread.join();
+  }
+
+  for (const auto& p : part) {
+    for (auto x : p) {
+      result.push_back(std::move(x));
+    }
+  }
+
   return result;
 }
 
