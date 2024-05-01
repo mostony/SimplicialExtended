@@ -9,40 +9,54 @@
 #include "src/SimplicialComplex.h"
 namespace py = pybind11;
 
+using namespace pybind11::literals;
+
 PYBIND11_MODULE(simpl, m) {
   m.doc() = "SimplicialComplex, HyperGraph & CombinatorialComplex";
 
   py::class_<SimplicialComplex>(m, "SimplicialComplex")
       .def(py::init<>())
-      .def("AddFunction", &SimplicialComplex::AddFunction)
-      .def("RemoveFunction", &SimplicialComplex::RemoveFunction)
-      .def("FeaturesMatrix", &SimplicialComplex::FeaturesMatrix)
-      .def("UpdateWeight", &SimplicialComplex::UpdateWeight)
-      .def("Weights", &SimplicialComplex::Weights)
-      .def("LaplacianMatrix", &SimplicialComplex::LaplacianMatrix)
-      .def("EigenValues", &SimplicialComplex::EigenValues)
-      .def("ThresholdAbove", &SimplicialComplex::ThresholdAbove)
-      .def("ThresholdBelow", &SimplicialComplex::ThresholdBelow)
-      .def("AddSimplex", &SimplicialComplex::AddSimplex)
-      .def("BoundaryMatrix", &SimplicialComplex::BoundaryMatrix)
-      .def("RemoveSimplex", &SimplicialComplex::RemoveSimplex)
-      .def("Incidence", &SimplicialComplex::Incidence)
-      .def("IncidenceDegree", &SimplicialComplex::IncidenceDegree)
-      .def("Adjacency", &SimplicialComplex::Adjacency)
-      .def("Degree", &SimplicialComplex::Degree)
-      .def("DegreeAll", &SimplicialComplex::DegreeAll)
-      .def("BettiNumber", &SimplicialComplex::BettiNumber)
-      .def("Closeness", &SimplicialComplex::Closeness)
-      .def("ClosenessAll", &SimplicialComplex::ClosenessAll)
-      .def("Betweenness", &SimplicialComplex::Betweenness)
-      .def("BetweennessAll", &SimplicialComplex::BetweennessAll)
+      .def("AddFunction", &SimplicialComplex::AddFunction, "name"_a, "func"_a)
+      .def("RemoveFunction", &SimplicialComplex::RemoveFunction, "name"_a)
+      .def("FeaturesMatrix", &SimplicialComplex::FeaturesMatrix, "rank"_a)
+      .def("UpdateWeight", &SimplicialComplex::UpdateWeight, "node"_a, "rank"_a)
+      .def("Weights", &SimplicialComplex::Weights, "rank"_a)
+      .def("LaplacianMatrix", &SimplicialComplex::LaplacianMatrix, "k"_a, "p"_a,
+           "q"_a, "weighted"_a = false)
+      .def("EigenValues", &SimplicialComplex::EigenValues, "k"_a, "p"_a, "q"_a,
+           "weighted"_a = false)
+      .def("ThresholdAbove", &SimplicialComplex::ThresholdAbove, "name"_a,
+           "threshold"_a)
+      .def("ThresholdBelow", &SimplicialComplex::ThresholdBelow, "name"_a,
+           "threshold"_a)
+      .def("AddSimplex", &SimplicialComplex::AddSimplex, "simplex"_a)
+      .def("BoundaryMatrix", &SimplicialComplex::BoundaryMatrix, "k"_a, "p"_a)
+      .def("RemoveSimplex", &SimplicialComplex::RemoveSimplex, "simplex"_a)
+      .def("Incidence", &SimplicialComplex::Incidence, "node"_a, "k"_a)
+      .def("IncidenceDegree", &SimplicialComplex::IncidenceDegree, "node"_a,
+           "k"_a)
+      .def("Adjacency", &SimplicialComplex::Adjacency, "node"_a, "k"_a)
+      .def("Degree", &SimplicialComplex::Degree, "node"_a, "k"_a,
+           "weighted"_a = false)
+      .def("DegreeAll", &SimplicialComplex::DegreeAll, "p"_a, "k"_a,
+           "weighted"_a = false)
+      .def("BettiNumber", &SimplicialComplex::BettiNumber, "k"_a)
+      .def("Closeness", &SimplicialComplex::Closeness, "node"_a, "p"_a,
+           "weighted"_a = false)
+      .def("ClosenessAll", &SimplicialComplex::ClosenessAll, "k"_a, "p"_a,
+           "weighted"_a = false)
+      .def("Betweenness", &SimplicialComplex::Betweenness, "node"_a, "p"_a,
+           "weighted"_a = false)
+      .def("BetweennessAll", &SimplicialComplex::BetweennessAll, "k"_a, "p"_a,
+           "weighted"_a = false)
       .def("GetMaxSimplices", &SimplicialComplex::GetMaxSimplices)
       .def("GetAll", &SimplicialComplex::GetAll)
       .def("TotalCount", &SimplicialComplex::TotalCount)
       .def("FVector", &SimplicialComplex::FVector)
       .def("Dimension", &SimplicialComplex::Dimension)
       .def("EulerCharacteristic", &SimplicialComplex::EulerCharacteristic)
-      .def("BuildFromDowkerComplex", &SimplicialComplex::BuildFromDowkerComplex)
+      .def("BuildFromDowkerComplex", &SimplicialComplex::BuildFromDowkerComplex,
+           "binary"_a, "on_column"_a = false)
       .def("Clear", &SimplicialComplex::Clear);
 
   py::class_<HyperGraph>(m, "HyperGraph")
