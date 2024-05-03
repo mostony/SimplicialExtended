@@ -56,3 +56,8 @@ pybind11_add_module(simpl
         src/abstract_model.cpp
 )
 target_link_libraries(simpl PRIVATE Eigen3::Eigen)
+
+find_package(OpenMP REQUIRED)
+
+target_link_libraries(simpl PUBLIC OpenMP::OpenMP_CXX)
+target_link_libraries(tests PUBLIC OpenMP::OpenMP_CXX)
