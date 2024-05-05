@@ -3,7 +3,6 @@
 
 #include <cassert>
 #include <functional>
-#include <mutex>
 #include <queue>
 #include <set>
 #include <stdexcept>
@@ -111,16 +110,16 @@ void Hasse::ResetCache() {
   cache_incidence_.clear();
 }
 
+// O(n)
 bool Hasse::In(const std::vector<int>& a, const std::vector<int>& b) {
-  for (size_t i = 0; i < a.size(); i++) {
-    bool found = false;
-    for (size_t j = 0; j < b.size(); j++) {
-      if (a[i] == b[j]) {
-        found = true;
-        break;
-      }
+  assert(is_sorted(a.begin(), a.end()));
+  assert(is_sorted(b.begin(), b.end()));
+
+  for (size_t i = 0, j = 0; i < a.size(); i++) {
+    while (j < b.size() && a[i] != b[j]) {
+      j += 1;
     }
-    if (!found) {
+    if (j == b.size()) {
       return false;
     }
   }
@@ -464,7 +463,9 @@ MyMatrixDouble Hasse::LaplacianMatrix(int k, int p, int q, bool weighted) {
     auto wk = WeightedMatrix(k);
     auto wq = WeightedMatrix(q);
     return b1.transpose() * wp.inverse() * b1 * wk +
-           wk.inverse() * b2 * wq * b2.transpose();
+           (b2.transpose() * wk.inverse()).transpose() * (b2 * wq).transpose();
+    // return b1.transpose() * wp.inverse() * b1 * wk +
+    //        wk.inverse() * b2 * wq * b2.transpose();
   }
 }
 

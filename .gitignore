@@ -1,5 +1,7 @@
 build/*
 .*
-datasets/*
+datasets/chess_games/*
+datasets/threads*
+datasets/cliq.ipynb
 !datasets/chess_games/chess.ipynb
 cmake-build-debug/*
