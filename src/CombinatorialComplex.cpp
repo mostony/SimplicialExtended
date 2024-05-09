@@ -1,4 +1,5 @@
 #include "CombinatorialComplex.h"
+#include <cassert>
 
 void CombinatorialComplex::Build(std::vector<std::vector<int>> data) {
   std::vector<Node*> nodes;
@@ -13,6 +14,7 @@ void CombinatorialComplex::Build(std::vector<std::vector<int>> data) {
         continue;
       }
       if (Hasse::In(data[i], data[j])) {
+        assert(nodes[i]->rank <= nodes[j]->rank);
         hasse_.AddArc(data[i], data[j]);
       }
     }
