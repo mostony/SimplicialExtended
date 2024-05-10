@@ -9,10 +9,16 @@
 #include <vector>
 
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
+#include <Spectra/SymEigsSolver.h>
+#include <Spectra/GenEigsSolver.h>
+#include <Spectra/MatOp/SparseSymMatProd.h>
 
-typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MyMatrixDouble;
+typedef Eigen::SparseMatrix<double, Eigen::RowMajor> MyMatrixDouble;
 
-typedef Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> MyMatrixInt;
+typedef Eigen::DiagonalMatrix<double, Eigen::Dynamic> MyMatrixDiag;
+
+typedef Eigen::SparseMatrix<int, Eigen::RowMajor> MyMatrixInt;
 
 class Hasse {
  public:
@@ -85,6 +91,8 @@ class Hasse {
   /// p < k < q
   MyMatrixDouble LaplacianMatrix(int k, int p, int q, bool weighted);
 
+  std::vector<double> EigenValues(int k, int p, int q, bool weighted, int cnt);
+
   /* --------------------- centrality --------------------- */
   double Closeness(std::vector<int> node, int max_rank, bool weighted = false);
   double Betweenness(std::vector<int> node, int max_rank,
@@ -110,7 +118,7 @@ class Hasse {
   static int CalculateSign(const std::vector<int>& subset,
                            const std::vector<int>& set);
 
-  Eigen::DiagonalMatrix<double, Eigen::Dynamic> WeightedMatrix(int rank);
+  MyMatrixDiag WeightedMatrix(int rank);
 
  private:
   void RecursiveRemoveNode(const std::vector<int>& node);
@@ -146,7 +154,8 @@ class Hasse {
       nodes_with_fixed_rank_;
 
   std::map<std::pair<int, int>, std::vector<std::vector<int>>> cache_incidence_;
-  std::map<std::pair<int, int>, std::vector<std::vector<double>>> cache_degree_;
+  std::map<std::array<int, 3>, std::vector<std::vector<double>>> cache_degree_;
+  std::map<std::pair<int, int>, MyMatrixInt> cache_boundary_;
   std::map<std::string, std::function<double(std::vector<int>)>>
       custom_function_;
 };

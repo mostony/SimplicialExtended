@@ -39,17 +39,8 @@ int AbstractModel::BettiNumber(int k) {
   return hasse_.BettiNumber(k);
 }
 
-std::vector<std::vector<int>> AbstractModel::BoundaryMatrix(int k, int p) {
-  auto result_mat = hasse_.BoundaryMatrix(k, p);
-  size_t rows = result_mat.rows();
-  size_t cols = result_mat.cols();
-  std::vector<std::vector<int>> result(rows, std::vector<int>(cols));
-  for (size_t i = 0; i < rows; i++) {
-    for (size_t j = 0; j < cols; j++) {
-      result[i][j] = result_mat(i, j);
-    }
-  }
-  return result;
+MyMatrixInt AbstractModel::BoundaryMatrix(int k, int p) {
+  return hasse_.BoundaryMatrix(k, p);
 }
 
 double AbstractModel::Closeness(std::vector<int> node, int max_rank,
@@ -97,33 +88,33 @@ std::vector<std::vector<double>> ConvertToVector(const MyMatrixDouble& mat) {
                                        std::vector<double>(mat.cols()));
   for (size_t i = 0; i < mat.rows(); ++i) {
     for (size_t j = 0; j < mat.cols(); ++j) {
-      ret[i][j] = mat(i, j);
+      ret[i][j] = mat.coeff(i, j);
     }
   }
   return ret;
 }
 
-std::vector<std::vector<double>> AbstractModel::Weights(int rank) {
-  return ConvertToVector(hasse_.WeightedMatrix(rank));
+std::vector<std::vector<double>> ConvertToVectorDiag(const MyMatrixDiag& mat) {
+  std::vector<std::vector<double>> ret(mat.rows(),
+                                       std::vector<double>(mat.cols()));
+  for (size_t i = 0; i < mat.rows(); ++i) {
+    ret[i][i] = mat.diagonal()[i];
+  }
+  return ret;
 }
 
-std::vector<std::vector<double>> AbstractModel::LaplacianMatrix(int k, int p,
-                                                                int q,
-                                                                bool weighted) {
-  auto L = hasse_.LaplacianMatrix(k, p, q, weighted);
-  return ConvertToVector(L);
+MyMatrixDiag AbstractModel::Weights(int rank) {
+  return hasse_.WeightedMatrix(rank);
+}
+
+MyMatrixDouble AbstractModel::LaplacianMatrix(int k, int p, int q,
+                                              bool weighted) {
+  return hasse_.LaplacianMatrix(k, p, q, weighted);
 }
 
 std::vector<double> AbstractModel::EigenValues(int k, int p, int q,
-                                               bool weighted) {
-  auto L = hasse_.LaplacianMatrix(k, p, q, weighted);
-  Eigen::SelfAdjointEigenSolver<MyMatrixDouble> eg;
-  auto values = eg.compute(L).eigenvalues();
-  std::vector<double> result;
-  for (auto x : values) {
-    result.push_back(x);
-  }
-  return result;
+                                               bool weighted, int cnt) {
+  return hasse_.EigenValues(k, p, q, weighted, cnt);
 }
 
 void AbstractModel::AddFunction(std::string name,

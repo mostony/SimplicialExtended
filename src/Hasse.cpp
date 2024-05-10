@@ -1,5 +1,8 @@
 #include "Hasse.h"
+#include "Eigen/src/Core/Matrix.h"
+#include "Eigen/src/Core/util/Constants.h"
 #include "Node.h"
+#include "Spectra/MatOp/SparseSymMatProd.h"
 
 #include <cassert>
 #include <functional>
@@ -219,16 +222,17 @@ std::vector<std::vector<double>>& Hasse::DegreeMatrix(int p, int k,
   if (k < p) {
     throw std::runtime_error("k < p");
   }
-  if (cache_degree_.count(std::make_pair(k, p))) {
-    return cache_degree_[std::make_pair(k, p)];
+
+  if (cache_degree_.count({k, p, weighted})) {
+    return cache_degree_[{k, p, weighted}];
   }
 
   std::vector<Node*> upper = GetNodesWithFixedRank(k);
 
   const std::vector<std::vector<int>>& incidence = IncidenceMatrix(p, k);
   if (incidence.empty()) {
-    cache_degree_[std::make_pair(k, p)] = {};
-    return cache_degree_[std::make_pair(k, p)];
+    cache_degree_[{k, p, weighted}] = {};
+    return cache_degree_[{k, p, weighted}];
   }
 
   int size = incidence.size();
@@ -255,8 +259,8 @@ std::vector<std::vector<double>>& Hasse::DegreeMatrix(int p, int k,
       }
     }
   }
-  cache_degree_[std::make_pair(k, p)] = std::move(result);
-  return cache_degree_[std::make_pair(k, p)];
+  cache_degree_[{k, p, weighted}] = std::move(result);
+  return cache_degree_[{k, p, weighted}];
 }
 
 int Hasse::Dimension() {
@@ -423,22 +427,29 @@ MyMatrixInt Hasse::BoundaryMatrix(int k, int p) {
   }
 
   std::vector<Node*> lower = GetNodesWithFixedRank(p);
-
   std::vector<Node*> upper = GetNodesWithFixedRank(k);
+
   std::unordered_map<Node*, int> positions;
+  positions.reserve(upper.size());
+
   for (size_t i = 0; i < upper.size(); i++) {
     auto up = upper[i];
     positions[up] = i;
   }
-  MyMatrixInt result = MyMatrixInt::Zero(lower.size(), upper.size());
+
+  std::vector<Eigen::Triplet<int>> tripletList;
+
   for (size_t i = 0; i < lower.size(); i++) {
     auto neighbors = lower[i]->GetAllUpper(k);
     for (auto up : neighbors) {
       auto pos = positions[up];
       assert(pos < upper.size() && upper[pos] == up);
-      result(i, pos) = CalculateSign(lower[i]->data, upper[pos]->data);
+      tripletList.push_back(Eigen::Triplet<int>(
+          i, pos, CalculateSign(lower[i]->data, upper[pos]->data)));
     }
   }
+  MyMatrixInt result(lower.size(), upper.size());
+  result.setFromTriplets(tripletList.begin(), tripletList.end());
   return result;
 }
 
@@ -450,7 +461,8 @@ MyMatrixDouble Hasse::LaplacianMatrix(int k, int p, int q, bool weighted) {
   if (!weighted) {
     auto b1 = BoundaryMatrix(k, p);
     auto b2 = BoundaryMatrix(q, k);
-    auto result = b1.transpose() * b1 + b2 * b2.transpose();
+    MyMatrixInt result = b1.transpose() * b1 + b2 * b2.transpose();
+    result.prune(0);
     return result.cast<double>();
   } else {
     // important lines, can't cast from temporary object
@@ -462,10 +474,11 @@ MyMatrixDouble Hasse::LaplacianMatrix(int k, int p, int q, bool weighted) {
     auto wp = WeightedMatrix(p);
     auto wk = WeightedMatrix(k);
     auto wq = WeightedMatrix(q);
-    return b1.transpose() * wp.inverse() * b1 * wk +
-           (b2.transpose() * wk.inverse()).transpose() * (b2 * wq).transpose();
-    // return b1.transpose() * wp.inverse() * b1 * wk +
-    //        wk.inverse() * b2 * wq * b2.transpose();
+    MyMatrixDouble first = b1.transpose() * wp.inverse() * b1 * wk;
+    MyMatrixDouble second = wk.inverse() * b2 * wq * b2.transpose();
+    MyMatrixDouble result = first + second;
+    result.prune(0.0);
+    return result;
   }
 }
 
@@ -608,8 +621,6 @@ double Hasse::Closeness(std::vector<int> node, int max_rank, bool weighted) {
     }
   }
 
-  /// TODO: now norming by number of visisted nodes
-  /// including self
   if (visited == 1) {  // node isolated
     return 0.0;
   }
@@ -647,7 +658,7 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank, bool weighted) {
     if (i == index_chosen_node) {
       continue;
     }
-    std::vector<double> dist(n, n);
+    std::vector<double> dist(n, -1);
     std::vector<int> shortest_path_cnt(n, 0);
     std::vector<std::pair<int, int>> shortest_path_through_node_cnt(
         n, {0, 0});  // (cnt, visited)
@@ -667,7 +678,7 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank, bool weighted) {
           if (!g[v][u]) {
             continue;
           }
-          if (dist[u] > dist[v] + 1) {
+          if (dist[u] == -1 || dist[u] > dist[v] + 1) {
             dist[u] = dist[v] + 1;
             shortest_path_cnt[u] = shortest_path_cnt[v];
             shortest_path_through_node_cnt[u] =
@@ -710,7 +721,7 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank, bool weighted) {
           if (g[v][u] == 0) {
             continue;
           }
-          if (dist[u] > dist[v] + g[v][u]) {
+          if (dist[u] == -1 || dist[u] > dist[v] + g[v][u]) {
             dist[u] = dist[v] + g[v][u];
             shortest_path_cnt[u] = shortest_path_cnt[v];
             shortest_path_through_node_cnt[u] =
@@ -747,7 +758,6 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank, bool weighted) {
       sum_distances += 1.0 * num / den;
     }
   }
-  /// TODO: norm by n, maybe should norm by visited nodes
   int norm = (n - 1) * (n - 2) / 2;
   return sum_distances / norm;
 }
@@ -805,7 +815,6 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(
   std::vector<std::pair<std::vector<int>, double>> result;
   std::vector<Node*> nodes = GetNodesWithFixedRank(p);
   int total_threads = std::thread::hardware_concurrency();
-
   DegreeMatrix(p, max_rank, weighted);
 
   auto Go = [&](int l, int r,
@@ -912,11 +921,50 @@ void Hasse::UpdateWeight(std::vector<int> node, double new_weight) {
   n->UpdateWeight(new_weight);
 }
 
-Eigen::DiagonalMatrix<double, Eigen::Dynamic> Hasse::WeightedMatrix(int rank) {
+MyMatrixDiag Hasse::WeightedMatrix(int rank) {
   auto nodes = GetNodesWithFixedRank(rank);
-  Eigen::DiagonalMatrix<double, Eigen::Dynamic> result(nodes.size());
+  MyMatrixDiag result(nodes.size());
   for (size_t i = 0; i < nodes.size(); i++) {
     result.diagonal()[i] = nodes[i]->weight;
   }
   return std::move(result);
+}
+
+std::vector<double> Hasse::EigenValues(int k, int p, int q, bool weighted,
+                                       int cnt) {
+  auto L = LaplacianMatrix(k, p, q, weighted);
+  Spectra::SparseSymMatProd<double, Eigen::Lower, Eigen::RowMajor, int> op(L);
+  size_t n = L.cols();
+  if (cnt > n - 1) {
+    cnt = n - 1;
+  }
+
+  // similar
+  // https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigsh.html
+  int ncv = std::max(2 * cnt + 1, 20);
+
+  if (ncv > n) {
+    ncv = n;
+  }
+
+  Spectra::SymEigsSolver<
+      Spectra::SparseSymMatProd<double, Eigen::Lower, Eigen::RowMajor, int>>
+      eg(op, cnt, ncv);
+
+  eg.init();
+
+  int nconv = eg.compute(Spectra::SortRule::LargestMagn, 1000, 1e-20);
+
+  Eigen::Matrix<double, -1, 1> values;
+  if (eg.info() == Spectra::CompInfo::Successful) {
+    values = eg.eigenvalues();
+  } else {
+    throw std::runtime_error("Can't calculate spectre");
+  }
+
+  std::vector<double> result;
+  for (auto x : values) {
+    result.push_back(x);
+  }
+  return result;
 }

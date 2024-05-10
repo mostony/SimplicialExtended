@@ -50,5 +50,5 @@ std::vector<Node*> Node::GetAllUpper(int upper_rank) {
       }
     }
   }
-  return result;
+  return std::move(result);
 }

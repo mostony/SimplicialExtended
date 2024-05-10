@@ -2,17 +2,21 @@
 #include "pybind11/stl.h"
 #include "pybind11/functional.h"
 #include "pybind11/complex.h"
+#include <pybind11/eigen.h>
 
 #include "src/CombinatorialComplex.h"
 #include "src/Graph.h"
 #include "src/HyperGraph.h"
 #include "src/SimplicialComplex.h"
+
 namespace py = pybind11;
 
 using namespace pybind11::literals;
 
 PYBIND11_MODULE(simpl, m) {
-  m.doc() = "SimplicialComplex, HyperGraph & CombinatorialComplex";
+  m.doc() =
+      "Library for SimplicialComplex, Graph, HyperGraph and "
+      "CombinatorialComplex";
 
   py::class_<SimplicialComplex>(m, "SimplicialComplex")
       .def(py::init<>())
@@ -24,7 +28,7 @@ PYBIND11_MODULE(simpl, m) {
       .def("LaplacianMatrix", &SimplicialComplex::LaplacianMatrix, "k"_a, "p"_a,
            "q"_a, "weighted"_a = false)
       .def("EigenValues", &SimplicialComplex::EigenValues, "k"_a, "p"_a, "q"_a,
-           "weighted"_a = false)
+           "weighted"_a, "cnt"_a)
       .def("ThresholdAbove", &SimplicialComplex::ThresholdAbove, "name"_a,
            "threshold"_a)
       .def("ThresholdBelow", &SimplicialComplex::ThresholdBelow, "name"_a,

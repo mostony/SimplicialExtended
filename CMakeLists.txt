@@ -33,6 +33,14 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Eigen3)
 
+FetchContent_Declare(
+        Spectra
+        GIT_REPOSITORY https://github.com/yixuan/spectra.git
+        GIT_TAG v1.0.1
+)
+
+FetchContent_MakeAvailable(Spectra)
+
 add_executable(tests test.cpp src/Hasse.cpp
         src/HyperGraph.cpp
         src/Node.cpp
@@ -44,6 +52,7 @@ add_executable(tests test.cpp src/Hasse.cpp
 
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries(tests PRIVATE Eigen3::Eigen)
+target_link_libraries(tests PRIVATE Spectra)
 
 pybind11_add_module(simpl
         module_creation.cpp
@@ -55,7 +64,9 @@ pybind11_add_module(simpl
         src/Graph.cpp
         src/abstract_model.cpp
 )
+
 target_link_libraries(simpl PRIVATE Eigen3::Eigen)
+target_link_libraries(simpl PRIVATE Spectra)
 
 find_package(OpenMP REQUIRED)
 

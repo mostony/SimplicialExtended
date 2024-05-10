@@ -32,7 +32,7 @@ class AbstractModel {
 
   int BettiNumber(int k);
 
-  std::vector<std::vector<int>> BoundaryMatrix(int k, int p);
+  MyMatrixInt BoundaryMatrix(int k, int p);
 
   double Closeness(std::vector<int> node, int max_rank, bool weighted = false);
   double Betweenness(std::vector<int> node, int max_rank,
@@ -53,11 +53,10 @@ class AbstractModel {
 
   void Clear();
 
-  std::vector<std::vector<double>> Weights(int rank);
+  MyMatrixDiag Weights(int rank);
 
-  std::vector<std::vector<double>> LaplacianMatrix(int k, int p, int q,
-                                                   bool weighted = false);
-  std::vector<double> EigenValues(int k, int p, int q, bool weighted = false);
+  MyMatrixDouble LaplacianMatrix(int k, int p, int q, bool weighted = false);
+  std::vector<double> EigenValues(int k, int p, int q, bool weighted, int cnt);
 
  protected:
   Hasse hasse_;
