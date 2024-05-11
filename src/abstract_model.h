@@ -22,6 +22,7 @@ class AbstractModel {
 
   std::vector<std::vector<int>> GetMaxFaces();
   std::vector<std::vector<int>> GetAll();
+  std::vector<std::vector<int>> GetElementsWithRank(int rank);
 
   std::vector<std::vector<int>> Incidence(std::vector<int> node, int k);
   int IncidenceDegree(std::vector<int> node, int k);
@@ -57,6 +58,7 @@ class AbstractModel {
 
   MyMatrixDouble LaplacianMatrix(int k, int p, int q, bool weighted = false);
   std::vector<double> EigenValues(int k, int p, int q, bool weighted, int cnt);
+  std::vector<double> EigenValuesAll(int k, int p, int q, bool weighted);
 
  protected:
   Hasse hasse_;

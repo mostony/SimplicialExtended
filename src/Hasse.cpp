@@ -3,6 +3,7 @@
 #include "Eigen/src/Core/util/Constants.h"
 #include "Node.h"
 #include "Spectra/MatOp/SparseSymMatProd.h"
+#include <armadillo>
 
 #include <cassert>
 #include <functional>
@@ -933,38 +934,99 @@ MyMatrixDiag Hasse::WeightedMatrix(int rank) {
 std::vector<double> Hasse::EigenValues(int k, int p, int q, bool weighted,
                                        int cnt) {
   auto L = LaplacianMatrix(k, p, q, weighted);
-  Spectra::SparseSymMatProd<double, Eigen::Lower, Eigen::RowMajor, int> op(L);
+
   size_t n = L.cols();
   if (cnt > n - 1) {
     cnt = n - 1;
   }
 
-  // similar
+  arma::SpMat<double> armL(n, n);
+
+  for (int k = 0; k < L.outerSize(); ++k) {
+    for (Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(L, k);
+         it; ++it) {
+      armL(it.row(), it.col()) = it.value();
+    }
+  }
+  arma::vec eigval;
+  arma::mat eigvec;
+
+  arma::eigs_opts opts;
+  opts.maxiter = 10000;  // increase max iterations to 10000
+
+  eigs_sym(eigval, eigvec, armL, cnt, "lm", opts);
+  std::vector<double> result;
+  for (auto x : eigval) {
+    result.push_back(x);
+  }
+  std::sort(result.begin(), result.end());
+  std::reverse(result.begin(), result.end());
+  return result;
+
+  // Maybe spectra not best idea...
+
+  // Spectra::SparseSymMatProd<double, Eigen::Lower, Eigen::RowMajor, int>
+  // op(L);
+
+  // // similar
+  // //
   // https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigsh.html
-  int ncv = std::max(2 * cnt + 1, 20);
+  // int ncv = std::max(2 * cnt + 1, 20);
 
-  if (ncv > n) {
-    ncv = n;
+  // if (ncv > n) {
+  //   ncv = n;
+  // }
+
+  // Spectra::SymEigsSolver<
+  //     Spectra::SparseSymMatProd<double, Eigen::Lower, Eigen::RowMajor, int>>
+  //     eg(op, cnt, ncv);
+
+  // eg.init();
+
+  // int nconv = eg.compute(Spectra::SortRule::LargestMagn, 1000, 1e-20);
+
+  // Eigen::Matrix<double, -1, 1> values;
+  // if (eg.info() == Spectra::CompInfo::Successful) {
+  //   values = eg.eigenvalues();
+  // } else {
+  //   throw std::runtime_error("Can't calculate spectre");
+  // }
+
+  // std::vector<double> result;
+  // for (auto x : values) {
+  //   result.push_back(x);
+  // }
+  // return result;
+}
+
+std::vector<double> Hasse::EigenValuesAll(int k, int p, int q, bool weighted) {
+  auto L = LaplacianMatrix(k, p, q, weighted);
+
+  arma::mat A(L.cols(), L.cols());
+  for (size_t i = 0; i < L.cols(); i++) {
+    for (size_t j = 0; j < L.cols(); j++) {
+      A(i, j) = L.coeff(i, j);
+    }
   }
 
-  Spectra::SymEigsSolver<
-      Spectra::SparseSymMatProd<double, Eigen::Lower, Eigen::RowMajor, int>>
-      eg(op, cnt, ncv);
+  arma::vec eigval;
+  arma::mat eigvec;
 
-  eg.init();
-
-  int nconv = eg.compute(Spectra::SortRule::LargestMagn, 1000, 1e-20);
-
-  Eigen::Matrix<double, -1, 1> values;
-  if (eg.info() == Spectra::CompInfo::Successful) {
-    values = eg.eigenvalues();
-  } else {
-    throw std::runtime_error("Can't calculate spectre");
-  }
+  eig_sym(eigval, eigvec, A);
 
   std::vector<double> result;
-  for (auto x : values) {
+  for (auto x : eigval) {
     result.push_back(x);
+  }
+  return result;
+}
+
+std::vector<std::vector<int>> Hasse::GetElementsWithRank(int rank) {
+  auto nodes = this->GetNodesWithFixedRank(rank);
+  std::vector<std::vector<int>> result;
+  result.resize(nodes.size());
+  for (auto node : nodes) {
+    result.push_back(node->data);
   }
   return result;
 }

@@ -55,6 +55,8 @@ class Hasse {
 
   std::vector<std::vector<int>> GetAllElements();
 
+  std::vector<std::vector<int>> GetElementsWithRank(int rank);
+
   /// return number of nodes
   int Size();
 
@@ -92,6 +94,7 @@ class Hasse {
   MyMatrixDouble LaplacianMatrix(int k, int p, int q, bool weighted);
 
   std::vector<double> EigenValues(int k, int p, int q, bool weighted, int cnt);
+  std::vector<double> EigenValuesAll(int k, int p, int q, bool weighted);
 
   /* --------------------- centrality --------------------- */
   double Closeness(std::vector<int> node, int max_rank, bool weighted = false);

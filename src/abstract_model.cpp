@@ -117,6 +117,11 @@ std::vector<double> AbstractModel::EigenValues(int k, int p, int q,
   return hasse_.EigenValues(k, p, q, weighted, cnt);
 }
 
+std::vector<double> AbstractModel::EigenValuesAll(int k, int p, int q,
+                                                  bool weighted) {
+  return hasse_.EigenValuesAll(k, p, q, weighted);
+}
+
 void AbstractModel::AddFunction(std::string name,
                                 std::function<double(std::vector<int>)> func) {
   hasse_.AddFunction(name, func);
@@ -140,4 +145,8 @@ void AbstractModel::ThresholdBelow(std::string name, double threshold) {
 
 void AbstractModel::UpdateWeight(std::vector<int> node, double new_weight) {
   hasse_.UpdateWeight(node, new_weight);
+}
+
+std::vector<std::vector<int>> AbstractModel::GetElementsWithRank(int rank) {
+  return hasse_.GetElementsWithRank(rank);
 }

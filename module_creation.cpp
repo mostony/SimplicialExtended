@@ -29,6 +29,8 @@ PYBIND11_MODULE(simpl, m) {
            "q"_a, "weighted"_a = false)
       .def("EigenValues", &SimplicialComplex::EigenValues, "k"_a, "p"_a, "q"_a,
            "weighted"_a, "cnt"_a)
+      .def("EigenValuesAll", &SimplicialComplex::EigenValuesAll, "k"_a, "p"_a,
+           "q"_a, "weighted"_a)
       .def("ThresholdAbove", &SimplicialComplex::ThresholdAbove, "name"_a,
            "threshold"_a)
       .def("ThresholdBelow", &SimplicialComplex::ThresholdBelow, "name"_a,
@@ -54,6 +56,7 @@ PYBIND11_MODULE(simpl, m) {
       .def("BetweennessAll", &SimplicialComplex::BetweennessAll, "k"_a, "p"_a,
            "weighted"_a = false)
       .def("GetMaxSimplices", &SimplicialComplex::GetMaxSimplices)
+      .def("GetElementsWithRank", &SimplicialComplex::GetElementsWithRank)
       .def("GetAll", &SimplicialComplex::GetAll)
       .def("TotalCount", &SimplicialComplex::TotalCount)
       .def("FVector", &SimplicialComplex::FVector)
@@ -72,6 +75,7 @@ PYBIND11_MODULE(simpl, m) {
       .def("Weights", &HyperGraph::Weights)
       .def("LaplacianMatrix", &HyperGraph::LaplacianMatrix)
       .def("EigenValues", &HyperGraph::EigenValues)
+      .def("EigenValuesAll", &HyperGraph::EigenValuesAll)
       .def("ThresholdAbove", &HyperGraph::ThresholdAbove)
       .def("ThresholdBelow", &HyperGraph::ThresholdBelow)
       .def("AddEdge", &HyperGraph::AddEdge)
@@ -88,6 +92,7 @@ PYBIND11_MODULE(simpl, m) {
       .def("Betweenness", &HyperGraph::Betweenness)
       .def("BetweennessAll", &HyperGraph::BetweennessAll)
       .def("GetEdges", &HyperGraph::GetEdges)
+      .def("GetElementsWithRank", &HyperGraph::GetElementsWithRank)
       .def("GetAll", &HyperGraph::GetAll)
       .def("TotalCount", &HyperGraph::TotalCount)
       .def("FVector", &HyperGraph::FVector)
@@ -104,6 +109,7 @@ PYBIND11_MODULE(simpl, m) {
       .def("Weights", &Graph::Weights)
       .def("LaplacianMatrix", &Graph::LaplacianMatrix)
       .def("EigenValues", &Graph::EigenValues)
+      .def("EigenValuesAll", &Graph::EigenValuesAll)
       .def("ThresholdAbove", &Graph::ThresholdAbove)
       .def("ThresholdBelow", &Graph::ThresholdBelow)
       .def("AddEdge", &Graph::AddEdge)
@@ -120,6 +126,7 @@ PYBIND11_MODULE(simpl, m) {
       .def("Betweenness", &Graph::Betweenness)
       .def("BetweennessAll", &Graph::BetweennessAll)
       .def("GetEdges", &Graph::GetEdges)
+      .def("GetElementsWithRank", &Graph::GetElementsWithRank)
       .def("GetAll", &Graph::GetAll)
       .def("TotalCount", &Graph::TotalCount)
       .def("FVector", &Graph::FVector)
@@ -136,6 +143,7 @@ PYBIND11_MODULE(simpl, m) {
       .def("Weights", &CombinatorialComplex::Weights)
       .def("LaplacianMatrix", &CombinatorialComplex::LaplacianMatrix)
       .def("EigenValues", &CombinatorialComplex::EigenValues)
+      .def("EigenValuesAll", &CombinatorialComplex::EigenValuesAll)
       .def("ThresholdAbove", &CombinatorialComplex::ThresholdAbove)
       .def("ThresholdBelow", &CombinatorialComplex::ThresholdBelow)
       .def("Build", &CombinatorialComplex::Build)
@@ -151,6 +159,7 @@ PYBIND11_MODULE(simpl, m) {
       .def("Betweenness", &CombinatorialComplex::Betweenness)
       .def("BetweennessAll", &CombinatorialComplex::BetweennessAll)
       .def("GetEdges", &CombinatorialComplex::GetSubsets)
+      .def("GetElementsWithRank", &CombinatorialComplex::GetElementsWithRank)
       .def("GetAll", &CombinatorialComplex::GetAll)
       .def("TotalCount", &CombinatorialComplex::TotalCount)
       .def("FVector", &CombinatorialComplex::FVector)
