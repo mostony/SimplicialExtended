@@ -13,7 +13,7 @@ class SimplicialComplex : public AbstractModel {
   friend void Merge(SimplicialComplex* current, SimplicialComplex* other);
 
   /// TODO: change method to enum
-  static SimplicialComplex* CreateCliqueGraph(
+  static std::unique_ptr<SimplicialComplex> CreateCliqueGraph(
       const std::vector<std::vector<int>>& g, int k, int method = 0,
       int total_threads = -1);
 

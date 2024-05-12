@@ -132,7 +132,6 @@ class Hasse {
 
   /// calculate SNF of mat module 2 and return
   /// number of non zero elements
-  /// TODO: maybe some bitset optimizations?
   int SNF(std::vector<std::vector<int>> mat);
 
   std::vector<Node*> GetNodesWithFixedRank(int rank);

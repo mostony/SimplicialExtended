@@ -72,6 +72,7 @@ find_package(OpenMP REQUIRED)
 
 target_link_libraries(simpl PUBLIC OpenMP::OpenMP_CXX)
 target_link_libraries(tests PUBLIC OpenMP::OpenMP_CXX)
+
 find_package(Armadillo REQUIRED)
 
 include_directories(${ARMADILLO_INCLUDE_DIRS})

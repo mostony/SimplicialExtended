@@ -17,7 +17,7 @@
 #include <vector>
 
 Node* Hasse::GetNode(const std::vector<int>& node) {
-  assert(is_sorted(node.begin(), node.end()));
+//  assert(is_sorted(node.begin(), node.end()));
   if (!mapping_.count(node)) {
     mapping_[node] = std::unique_ptr<Node>(new Node(node));
     nodes_with_fixed_rank_[mapping_[node]->rank].insert(mapping_[node].get());
@@ -486,6 +486,11 @@ MyMatrixDouble Hasse::LaplacianMatrix(int k, int p, int q, bool weighted) {
 void Merge(Hasse& current, Hasse& other) {
   for (auto& [key, value] : other.mapping_) {
     current.mapping_[key] = std::move(value);
+  }
+  for (auto &[rank, nodes] : other.nodes_with_fixed_rank_) {
+    for (auto node : nodes) {
+      current.nodes_with_fixed_rank_[rank].insert(node);
+    }
   }
 }
 

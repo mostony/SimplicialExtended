@@ -19,7 +19,7 @@ void AddCofaces(const std::vector<std::vector<int>>& g, int depth,
   if (depth > max_depth) {
     return;
   }
-  // simpl.AddComplex(cur_node);
+
   int n = g.size();
   for (int u : neighbors) {
     int ptr = 0;
@@ -46,7 +46,7 @@ void AddCofaces(const std::vector<std::vector<int>>& g, int depth,
   }
 }
 
-SimplicialComplex* SimplicialComplex::CreateCliqueGraph(
+std::unique_ptr<SimplicialComplex> SimplicialComplex::CreateCliqueGraph(
     const std::vector<std::vector<int>>& g, int k, int method,
     int total_threads) {
   int n = g.size();
@@ -89,7 +89,6 @@ SimplicialComplex* SimplicialComplex::CreateCliqueGraph(
     for (int index_thread = 0; index_thread < total_threads; index_thread++) {
       int l = index_thread * bucket;
       int r = std::min((index_thread + 1) * bucket, n);
-      // std::cerr << l << ' ' << r << std::endl;
       if (l < r) {
         thread_results.push_back(new SimplicialComplex());
         std::thread th(AddSubsetVertices, l, r, thread_results.back());
@@ -115,7 +114,7 @@ SimplicialComplex* SimplicialComplex::CreateCliqueGraph(
         std::vector<int> from = {v};
         for (int u = 0; u < v; u++) {
           if (g[v][u]) {
-            std::vector<int> to = {v, u};
+            std::vector<int> to = {u, v};
             thread_result->hasse_.AddArc(from, to);
           }
         }
@@ -162,7 +161,7 @@ SimplicialComplex* SimplicialComplex::CreateCliqueGraph(
       Merge(result, thread_result);
     }
   }
-  return result;
+  return std::unique_ptr<SimplicialComplex>(result);
 }
 
 std::vector<std::vector<int>> SimplicialComplex::GetMaxSimplices() {

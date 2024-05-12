@@ -64,6 +64,8 @@ PYBIND11_MODULE(simpl, m) {
       .def("EulerCharacteristic", &SimplicialComplex::EulerCharacteristic)
       .def("BuildFromDowkerComplex", &SimplicialComplex::BuildFromDowkerComplex,
            "binary"_a, "on_column"_a = false)
+      .def_static("CreateCliqueGraph", &SimplicialComplex::CreateCliqueGraph,
+                  "g"_a, "k"_a, "method"_a, "threads"_a)
       .def("Clear", &SimplicialComplex::Clear);
 
   py::class_<HyperGraph>(m, "HyperGraph")
