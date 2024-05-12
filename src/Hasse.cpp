@@ -14,10 +14,11 @@
 #include <algorithm>
 #include <thread>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 Node* Hasse::GetNode(const std::vector<int>& node) {
-//  assert(is_sorted(node.begin(), node.end()));
+  //  assert(is_sorted(node.begin(), node.end()));
   if (!mapping_.count(node)) {
     mapping_[node] = std::unique_ptr<Node>(new Node(node));
     nodes_with_fixed_rank_[mapping_[node]->rank].insert(mapping_[node].get());
@@ -487,7 +488,7 @@ void Merge(Hasse& current, Hasse& other) {
   for (auto& [key, value] : other.mapping_) {
     current.mapping_[key] = std::move(value);
   }
-  for (auto &[rank, nodes] : other.nodes_with_fixed_rank_) {
+  for (auto& [rank, nodes] : other.nodes_with_fixed_rank_) {
     for (auto node : nodes) {
       current.nodes_with_fixed_rank_[rank].insert(node);
     }
@@ -768,6 +769,186 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank, bool weighted) {
   return sum_distances / norm;
 }
 
+double ClosenessFast(const std::vector<std::vector<std::pair<int, double>>>& g,
+                     int start, bool weighted) {
+  int n = g.size();
+  double sum_distances = 0.0;
+  int visited = 0;
+  std::unordered_map<int, double> dist;
+  dist[start] = 0;
+
+  if (!weighted) {
+    std::queue<int> q;
+    q.push(start);
+    while (!q.empty()) {
+      int v = q.front();
+      q.pop();
+      for (auto& [u, w] : g[v]) {
+        if (!dist.count(u) || dist[u] > dist[v] + 1) {
+          dist[u] = dist[v] + 1;
+          q.push(u);
+        }
+      }
+    }
+  } else {
+    std::priority_queue<std::pair<double, int>> q;
+    q.push({-dist[start], start});
+    while (!q.empty()) {
+      auto v = q.top().second;
+      auto cur_d = -q.top().first;
+      q.pop();
+      if (cur_d > dist[v]) {
+        continue;
+      }
+      for (auto& [u, w] : g[v]) {
+        if (!dist.count(u) || dist[u] > dist[v] + w) {
+          dist[u] = dist[v] + w;
+          q.push({-dist[u], u});
+        }
+      }
+    }
+  }
+
+  for (auto& [v, d] : dist) {
+    sum_distances += d;
+    visited += 1;
+  }
+
+  if (visited == 1) {  // node isolated
+    return 0.0;
+  }
+
+  double avg_sum_distance = 1.0 * sum_distances / (visited - 1);
+  avg_sum_distance *= 1.0 * (n - 1) / (visited - 1);
+  return 1 / avg_sum_distance;
+}
+
+double BetweennessFast(
+    const std::vector<std::vector<std::pair<int, double>>>& g, int middle,
+    bool weighted) {
+  int n = g.size();
+
+  double sum_distances = 0;
+
+  std::unordered_set<int> vis;
+  {
+    std::queue<int> q;
+    q.push(middle);
+    vis.insert(middle);
+    while (!q.empty()) {
+      int v = q.front();
+      q.pop();
+      for (auto& [u, w] : g[v]) {
+        if (!vis.count(u)) {
+          vis.insert(u);
+          q.push(u);
+        }
+      }
+    }
+    vis.erase(middle);
+  }
+
+  for (auto s : vis) {
+    std::unordered_map<int, double> dist;
+    std::unordered_map<int, int> shortest_path_cnt;
+    std::unordered_map<int, std::pair<int, int>> shortest_path_through_node_cnt;
+
+    dist[s] = 0;
+    shortest_path_cnt[s] = 1;
+    shortest_path_through_node_cnt[s] = {1, 0};
+    if (!weighted) {
+      std::queue<int> q;
+      q.push(s);
+      while (!q.empty()) {
+        int v = q.front();
+        q.pop();
+        if (v == middle) {
+          shortest_path_through_node_cnt[v].second = true;
+        } else if (s < v) {
+          int num = shortest_path_through_node_cnt[v].first *
+                    shortest_path_through_node_cnt[v].second;
+          int den = shortest_path_cnt[v];
+          if (den != 0) {
+            sum_distances += 1.0 * num / den;
+          }
+        }
+        for (auto& [u, w] : g[v]) {
+          if (!dist.count(u) || dist[u] > dist[v] + 1) {
+            dist[u] = dist[v] + 1;
+            shortest_path_cnt[u] = shortest_path_cnt[v];
+            shortest_path_through_node_cnt[u] =
+                shortest_path_through_node_cnt[v];
+            q.push(u);
+          } else if (dist[u] == dist[v] + 1) {
+            shortest_path_cnt[u] += shortest_path_cnt[v];
+
+            if (shortest_path_through_node_cnt[u].second == 0 &&
+                shortest_path_through_node_cnt[v].second == 1) {
+              shortest_path_through_node_cnt[u] =
+                  shortest_path_through_node_cnt[v];
+            } else if (shortest_path_through_node_cnt[u].second == 1 &&
+                       shortest_path_through_node_cnt[v].second == 0) {
+              // skip
+            } else {
+              shortest_path_through_node_cnt[u].first +=
+                  shortest_path_through_node_cnt[v].first;
+            }
+          }
+        }
+      }
+    } else {
+      std::priority_queue<std::pair<double, int>> q;
+      q.push({-dist[s], s});
+
+      while (!q.empty()) {
+        auto v = q.top().second;
+        auto cur_d = -q.top().first;
+        q.pop();
+        if (cur_d > dist[v]) {
+          continue;
+        }
+
+        if (v == middle) {
+          shortest_path_through_node_cnt[v].second = true;
+        } else if (s < v) {
+          int num = shortest_path_through_node_cnt[v].first *
+                    shortest_path_through_node_cnt[v].second;
+          int den = shortest_path_cnt[v];
+          if (den != 0) {
+            sum_distances += 1.0 * num / den;
+          }
+        }
+
+        for (auto& [u, w] : g[v]) {
+          if (!dist.count(u) || dist[u] > dist[v] + w) {
+            dist[u] = dist[v] + w;
+            shortest_path_cnt[u] = shortest_path_cnt[v];
+            shortest_path_through_node_cnt[u] =
+                shortest_path_through_node_cnt[v];
+            q.push({-dist[u], u});
+          } else if (dist[u] == dist[v] + w) {
+            shortest_path_cnt[u] += shortest_path_cnt[v];
+
+            if (shortest_path_through_node_cnt[u].second == 0 &&
+                shortest_path_through_node_cnt[v].second == 1) {
+              shortest_path_through_node_cnt[u] =
+                  shortest_path_through_node_cnt[v];
+            } else if (shortest_path_through_node_cnt[u].second == 1 &&
+                       shortest_path_through_node_cnt[v].second == 0) {
+              // skip
+            } else {
+              shortest_path_through_node_cnt[u].first +=
+                  shortest_path_through_node_cnt[v].first;
+            }
+          }
+        }
+      }
+    }
+  }
+  int norm = (n - 1) * (n - 2) / 2;
+  return sum_distances / norm;
+}
+
 std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessAll(
     int p, int max_rank, bool weighted) {
   size_t n = nodes_with_fixed_rank_[p].size();
@@ -775,8 +956,15 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessAll(
   std::vector<Node*> nodes = GetNodesWithFixedRank(p);
   int total_threads = std::thread::hardware_concurrency();
 
-  // to make sure, that matrix created
-  DegreeMatrix(p, max_rank, weighted);
+  auto D = DegreeMatrix(p, max_rank, weighted);
+  std::vector<std::vector<std::pair<int, double>>> g(n);
+  for (size_t i = 0; i < n; i++) {
+    for (size_t j = 0; j < n; j++) {
+      if (D[i][j]) {
+        g[i].emplace_back(j, D[i][j]);
+      }
+    }
+  }
 
   auto Go = [&](int l, int r,
                 std::vector<std::pair<std::vector<int>, double>>& res) {
@@ -784,8 +972,7 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessAll(
       return;
     }
     for (size_t i = l; i < r; i++) {
-      res.emplace_back(nodes[i]->data,
-                       Closeness(nodes[i]->data, max_rank, weighted));
+      res.emplace_back(nodes[i]->data, ClosenessFast(g, i, weighted));
     }
   };
 
@@ -821,7 +1008,16 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(
   std::vector<std::pair<std::vector<int>, double>> result;
   std::vector<Node*> nodes = GetNodesWithFixedRank(p);
   int total_threads = std::thread::hardware_concurrency();
-  DegreeMatrix(p, max_rank, weighted);
+
+  auto D = DegreeMatrix(p, max_rank, weighted);
+  std::vector<std::vector<std::pair<int, double>>> g(n);
+  for (size_t i = 0; i < n; i++) {
+    for (size_t j = 0; j < n; j++) {
+      if (D[i][j]) {
+        g[i].emplace_back(j, D[i][j]);
+      }
+    }
+  }
 
   auto Go = [&](int l, int r,
                 std::vector<std::pair<std::vector<int>, double>>& res) {
@@ -829,8 +1025,9 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(
       return;
     }
     for (size_t i = l; i < r; i++) {
-      res.emplace_back(nodes[i]->data,
-                       Betweenness(nodes[i]->data, max_rank, weighted));
+      // res.emplace_back(nodes[i]->data,
+      //                  Betweenness(nodes[i]->data, max_rank, weighted));
+      res.emplace_back(nodes[i]->data, BetweennessFast(g, i, weighted));
     }
   };
 

@@ -4,5 +4,6 @@ datasets/chess_games/*
 datasets/threads*
 datasets/cliq.ipynb
 !datasets/chess_games/chess.ipynb
+!datasets/chess_games/chess_every_move.ipynb
 cmake-build-debug/*
 cmake-build-release/*
