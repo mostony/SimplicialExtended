@@ -5,6 +5,7 @@
 #include "Spectra/MatOp/SparseSymMatProd.h"
 #include <armadillo>
 
+#include <atomic>
 #include <cassert>
 #include <functional>
 #include <queue>
@@ -949,6 +950,77 @@ double BetweennessFast(
   return sum_distances / norm;
 }
 
+void BetweennessFastFast(
+    const std::vector<std::vector<std::pair<int, double>>>& g,
+    std::vector<std::atomic<double>>& answer, int s, bool weighted) {
+  int n = g.size();
+
+  std::unordered_map<int, double> dist;
+  std::unordered_map<int, int> sigma;
+  std::unordered_map<int, std::vector<int>> parents;
+
+  dist[s] = 0;
+  sigma[s] = 1;
+  std::vector<int> order;
+  if (!weighted) {
+    std::queue<int> q;
+    q.push(s);
+    while (!q.empty()) {
+      int v = q.front();
+      order.push_back(v);
+      q.pop();
+      auto cur_sigma = sigma[v];
+      for (auto& [u, w] : g[v]) {
+        if (!dist.count(u)) {
+          dist[u] = dist[v] + 1;
+          q.push(u);
+        }
+        if (dist[u] == dist[v] + 1) {
+          sigma[u] += cur_sigma;
+          parents[u].push_back(v);
+        }
+      }
+    }
+  } else {
+    std::priority_queue<std::pair<double, int>> q;
+    q.push({-dist[s], s});
+
+    while (!q.empty()) {
+      auto v = q.top().second;
+      auto cur_d = -q.top().first;
+      q.pop();
+      if (cur_d > dist[v]) {
+        continue;
+      }
+      order.push_back(v);
+      auto cur_sigma = sigma[v];
+
+      for (auto& [u, w] : g[v]) {
+        if (!dist.count(u) || dist[u] > dist[v] + w) {
+          dist[u] = dist[v] + w;
+          parents[u] = {};
+          q.push({-dist[u], u});
+        }
+        if (dist[u] == dist[v] + w) {
+          sigma[u] += cur_sigma;
+          parents[u].push_back(v);
+        }
+      }
+    }
+  }
+  std::unordered_map<int, double> delta;
+  while (!order.empty()) {
+    int w = order.back();
+    order.pop_back();
+    for (auto v : parents[w]) {
+      delta[v] += 1.0 * sigma[v] / sigma[w] * (1 + delta[w]);
+    }
+    if (w != s) {
+      answer[w].fetch_add(delta[w], std::memory_order_relaxed);
+    }
+  }
+}
+
 std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessAll(
     int p, int max_rank, bool weighted) {
   size_t n = nodes_with_fixed_rank_[p].size();
@@ -1005,7 +1077,7 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessAll(
 std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(
     int p, int max_rank, bool weighted) {
   size_t n = nodes_with_fixed_rank_[p].size();
-  std::vector<std::pair<std::vector<int>, double>> result;
+  std::vector<std::pair<std::vector<int>, double>> result(n);
   std::vector<Node*> nodes = GetNodesWithFixedRank(p);
   int total_threads = std::thread::hardware_concurrency();
 
@@ -1019,6 +1091,8 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(
     }
   }
 
+  std::vector<std::atomic<double>> answer(n);
+
   auto Go = [&](int l, int r,
                 std::vector<std::pair<std::vector<int>, double>>& res) {
     if (l >= r) {
@@ -1027,7 +1101,8 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(
     for (size_t i = l; i < r; i++) {
       // res.emplace_back(nodes[i]->data,
       //                  Betweenness(nodes[i]->data, max_rank, weighted));
-      res.emplace_back(nodes[i]->data, BetweennessFast(g, i, weighted));
+      // res.emplace_back(nodes[i]->data, BetweennessFast(g, i, weighted));
+      BetweennessFastFast(g, answer, i, weighted);
     }
   };
 
@@ -1048,10 +1123,9 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(
     thread.join();
   }
 
-  for (const auto& p : part) {
-    for (auto x : p) {
-      result.push_back(std::move(x));
-    }
+  // TODO: not sure about coeff
+  for (size_t i = 0; i < n; i++) {
+    result[i] = {nodes[i]->data, answer[i].load() / (n - 1) / (n - 2)};
   }
 
   return result;
