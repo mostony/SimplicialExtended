@@ -6,6 +6,9 @@ void HyperGraph::AddEdge(std::vector<int> edge) {
   for (auto vertice : edge) {
     auto lower_node = std::vector<int>{vertice};
     auto upper_node = edge;
+    hasse_.CreateNode(upper_node, 1);
+    hasse_.CreateNode(lower_node, 0);
+
     hasse_.AddArc(lower_node, upper_node);
   }
 }

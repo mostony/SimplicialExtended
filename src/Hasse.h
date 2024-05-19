@@ -38,6 +38,9 @@ class Hasse {
   void UpdateWeight(std::vector<int> node, double new_weight);
 
   /* ---------------------- structure --------------------- */
+
+  void CreateNode(const std::vector<int>& data, int rank);
+
   void AddArc(const std::vector<int>& from, const std::vector<int>& to);
 
   /// remove node and all upper nodes, reachable from node

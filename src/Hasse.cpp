@@ -18,6 +18,13 @@
 #include <unordered_set>
 #include <vector>
 
+void Hasse::CreateNode(const std::vector<int>& data, int rank) {
+  if (!mapping_.count(data)) {
+    mapping_[data] = std::unique_ptr<Node>(new Node(data, rank));
+    nodes_with_fixed_rank_[mapping_[data]->rank].insert(mapping_[data].get());
+  }
+}
+
 Node* Hasse::GetNode(const std::vector<int>& node) {
   //  assert(is_sorted(node.begin(), node.end()));
   if (!mapping_.count(node)) {
