@@ -149,6 +149,7 @@ PYBIND11_MODULE(simpl, m) {
       .def("ThresholdAbove", &CombinatorialComplex::ThresholdAbove)
       .def("ThresholdBelow", &CombinatorialComplex::ThresholdBelow)
       .def("Build", &CombinatorialComplex::Build)
+      .def("BuildWithRank", &CombinatorialComplex::BuildWithRank)
       .def("BoundaryMatrix", &CombinatorialComplex::BoundaryMatrix)
       .def("Incidence", &CombinatorialComplex::Incidence)
       .def("IncidenceDegree", &CombinatorialComplex::IncidenceDegree)
