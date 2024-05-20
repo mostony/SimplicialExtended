@@ -1307,7 +1307,7 @@ std::vector<double> Hasse::EigenValuesAll(int k, int p, int q, bool weighted) {
 std::vector<std::vector<int>> Hasse::GetElementsWithRank(int rank) {
   auto nodes = this->GetNodesWithFixedRank(rank);
   std::vector<std::vector<int>> result;
-  result.resize(nodes.size());
+  result.reserve(nodes.size());
   for (auto node : nodes) {
     result.push_back(node->data);
   }
