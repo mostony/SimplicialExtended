@@ -62,7 +62,7 @@ PYBIND11_MODULE(simpl, m) {
       .def("FVector", &SimplicialComplex::FVector)
       .def("Dimension", &SimplicialComplex::Dimension)
       .def("EulerCharacteristic", &SimplicialComplex::EulerCharacteristic)
-      .def("BuildFromDowkerComplex", &SimplicialComplex::BuildFromDowkerComplex,
+      .def("BuildDowkerComplex", &SimplicialComplex::BuildFromBinary,
            "binary"_a, "on_column"_a = false)
       .def_static("CreateCliqueGraph", &SimplicialComplex::CreateCliqueGraph,
                   "g"_a, "k"_a, "method"_a, "threads"_a)

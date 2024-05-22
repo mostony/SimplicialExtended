@@ -11,4 +11,6 @@ class Graph : public AbstractModel {
 
   /// TODO: empty graph
   std::vector<std::vector<int>> GetEdges();
+
+  void BuildFromBinary(std::vector<std::vector<int>> binary, bool on_column);
 };

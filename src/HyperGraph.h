@@ -9,4 +9,6 @@ class HyperGraph : public AbstractModel {
   void RemoveEdge(std::vector<int> edge);
 
   std::vector<std::vector<int>> GetEdges();
+
+  void BuildFromBinary(std::vector<std::vector<int>> binary, bool on_column);
 };

@@ -168,8 +168,8 @@ std::vector<std::vector<int>> SimplicialComplex::GetMaxSimplices() {
   return this->GetMaxFaces();
 }
 
-void SimplicialComplex::BuildFromDowkerComplex(
-    std::vector<std::vector<int>> binary, bool on_column) {
+void SimplicialComplex::BuildFromBinary(std::vector<std::vector<int>> binary,
+                                        bool on_column) {
   /// TODO: add check on matrix size
   Clear();
   if (binary.empty()) {

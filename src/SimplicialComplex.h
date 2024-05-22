@@ -24,6 +24,5 @@ class SimplicialComplex : public AbstractModel {
 
   /// on_column = true -- every column is simplex
   /// on_column = false -- every row is simplex
-  void BuildFromDowkerComplex(std::vector<std::vector<int>> binary,
-                              bool on_column);
+  void BuildFromBinary(std::vector<std::vector<int>> binary, bool on_column);
 };
