@@ -15,58 +15,106 @@ using namespace pybind11::literals;
 
 PYBIND11_MODULE(simpl, m) {
   m.doc() =
-      "Library for SimplicialComplex, Graph, HyperGraph and "
-      "CombinatorialComplex";
+      "Library for creating complex networks and calculating features on them. "
+      "Supported networks: simplicial complexes, "
+      "graphs, hypergraphs and "
+      "combinatorial complexes";
 
   py::class_<SimplicialComplex>(m, "SimplicialComplex")
-      .def(py::init<>())
-      .def("AddFunction", &SimplicialComplex::AddFunction, "name"_a, "func"_a)
-      .def("RemoveFunction", &SimplicialComplex::RemoveFunction, "name"_a)
-      .def("FeaturesMatrix", &SimplicialComplex::FeaturesMatrix, "rank"_a)
-      .def("UpdateWeight", &SimplicialComplex::UpdateWeight, "node"_a, "rank"_a)
-      .def("Weights", &SimplicialComplex::Weights, "rank"_a)
-      .def("LaplacianMatrix", &SimplicialComplex::LaplacianMatrix, "k"_a, "p"_a,
-           "q"_a, "weighted"_a = false)
-      .def("EigenValues", &SimplicialComplex::EigenValues, "k"_a, "p"_a, "q"_a,
-           "weighted"_a, "cnt"_a)
-      .def("EigenValuesAll", &SimplicialComplex::EigenValuesAll, "k"_a, "p"_a,
-           "q"_a, "weighted"_a)
+      .def(py::init<>(), "Creating a new simplicial complex")
+
+      .def("AddSimplex", &SimplicialComplex::AddSimplex, "simplex"_a,
+           "Add a simplex to the simplicial complex")
+      .def("RemoveSimplex", &SimplicialComplex::RemoveSimplex, "simplex"_a,
+           "Remove a simplex from the simplicial complex")
+
+      .def("AddFunction", &SimplicialComplex::AddFunction, "name"_a, "func"_a,
+           "Add a function on simplices with given name")
+      .def("RemoveFunction", &SimplicialComplex::RemoveFunction, "name"_a,
+           "Remove a function from simplicial complex by given name")
+      .def("FeaturesMatrix", &SimplicialComplex::FeaturesMatrix, "dim"_a,
+           "Get the feature matrix with simplices on given dimension")
+      .def("UpdateWeight", &SimplicialComplex::UpdateWeight, "node"_a,
+           "weight"_a, "Update the weight of a simplex")
+      .def("Weights", &SimplicialComplex::Weights, "rank"_a,
+           "Get the weights of all nodes at a given rank")
       .def("ThresholdAbove", &SimplicialComplex::ThresholdAbove, "name"_a,
-           "threshold"_a)
+           "threshold"_a,
+           "Threshold the simplicial complex by removing elements on which "
+           "function with given name higher or equal threshold value. Function "
+           "should me monotonically non-decreasing")
       .def("ThresholdBelow", &SimplicialComplex::ThresholdBelow, "name"_a,
-           "threshold"_a)
-      .def("AddSimplex", &SimplicialComplex::AddSimplex, "simplex"_a)
-      .def("BoundaryMatrix", &SimplicialComplex::BoundaryMatrix, "k"_a, "p"_a)
-      .def("RemoveSimplex", &SimplicialComplex::RemoveSimplex, "simplex"_a)
-      .def("Incidence", &SimplicialComplex::Incidence, "node"_a, "k"_a)
+           "threshold"_a,
+           "Threshold the simplicial complex by removing elements on which "
+           "function with given name less or equal threshold value. Function "
+           "should me monotonically non-increasing")
+
+      .def("BoundaryMatrix", &SimplicialComplex::BoundaryMatrix, "k"_a, "p"_a,
+           "Get the boundary matrix. Should be: k > p")
+      .def("Incidence", &SimplicialComplex::Incidence, "node"_a, "k"_a,
+           "Get all nodes k-incidence to given node")
       .def("IncidenceDegree", &SimplicialComplex::IncidenceDegree, "node"_a,
-           "k"_a)
-      .def("Adjacency", &SimplicialComplex::Adjacency, "node"_a, "k"_a)
+           "k"_a, "Get number of nodes k-incidence to given node")
+      .def("Adjacency", &SimplicialComplex::Adjacency, "node"_a, "k"_a,
+           "Get all nodes k-adjacence to given node")
       .def("Degree", &SimplicialComplex::Degree, "node"_a, "k"_a,
-           "weighted"_a = false)
+           "weighted"_a = false,
+           "Get sum of weights of all k-adjacence to given node.")
       .def("DegreeAll", &SimplicialComplex::DegreeAll, "p"_a, "k"_a,
-           "weighted"_a = false)
-      .def("BettiNumber", &SimplicialComplex::BettiNumber, "k"_a)
-      .def("Closeness", &SimplicialComplex::Closeness, "node"_a, "p"_a,
-           "weighted"_a = false)
-      .def("ClosenessAll", &SimplicialComplex::ClosenessAll, "k"_a, "p"_a,
-           "weighted"_a = false)
-      .def("Betweenness", &SimplicialComplex::Betweenness, "node"_a, "p"_a,
-           "weighted"_a = false)
-      .def("BetweennessAll", &SimplicialComplex::BetweennessAll, "k"_a, "p"_a,
-           "weighted"_a = false)
-      .def("GetMaxSimplices", &SimplicialComplex::GetMaxSimplices)
-      .def("GetElementsWithRank", &SimplicialComplex::GetElementsWithRank)
-      .def("GetAll", &SimplicialComplex::GetAll)
-      .def("TotalCount", &SimplicialComplex::TotalCount)
-      .def("FVector", &SimplicialComplex::FVector)
-      .def("Dimension", &SimplicialComplex::Dimension)
-      .def("EulerCharacteristic", &SimplicialComplex::EulerCharacteristic)
+           "weighted"_a = false,
+           "Get vector of degrees of all nodes with rank=p with k-adjacence")
+
+      .def("LaplacianMatrix", &SimplicialComplex::LaplacianMatrix, "k"_a, "p"_a,
+           "q"_a, "weighted"_a = false,
+           "Get the laplacian matrix. Should be: p < k < q")
+      .def("EigenValues", &SimplicialComplex::EigenValues, "k"_a, "p"_a, "q"_a,
+           "weighted"_a, "cnt"_a,
+           "Get the cnt eigen values of laplacian matrix. Should be: p < k < q")
+      .def("EigenValuesAll", &SimplicialComplex::EigenValuesAll, "k"_a, "p"_a,
+           "q"_a, "weighted"_a,
+           "Get all eigen values of laplacian matrix. Should be: p < k < q")
+
+      .def("BettiNumber", &SimplicialComplex::BettiNumber, "k"_a,
+           "Get the k betti number of simplicial complex")
+      .def("Closeness", &SimplicialComplex::Closeness, "node"_a, "q"_a,
+           "weighted"_a = false,
+           "Calculate closeness for given node via nodes with rank=q")
+      .def("ClosenessAll", &SimplicialComplex::ClosenessAll, "k"_a, "q"_a,
+           "weighted"_a = false,
+           "Calculate closeness for all node with rank=k via nodes with rank=q")
+      .def("Betweenness", &SimplicialComplex::Betweenness, "node"_a, "q"_a,
+           "weighted"_a = false,
+           "Calculate betweenness for given node via nodes with rank=q")
+      .def("BetweennessAll", &SimplicialComplex::BetweennessAll, "k"_a, "q"_a,
+           "weighted"_a = false,
+           "Calculate betweenness for all node with rank=k via nodes with "
+           "rank=q")
+
+      .def("GetMaxSimplices", &SimplicialComplex::GetMaxSimplices,
+           "Get all maximum simplices of complex")
+      .def("GetSimplicesWithDimension", &SimplicialComplex::GetElementsWithRank,
+           "dim"_a, "Get all simplices with given dimension")
+      .def("GetAllSimplices", &SimplicialComplex::GetAll, "Get all simplices")
+      .def("TotalCountOfSimplices", &SimplicialComplex::TotalCount,
+           "Get number of simplices in complex")
+      .def("FVector", &SimplicialComplex::FVector,
+           "Get the f-vector of the simplicial complex")
+      .def("Dimension", &SimplicialComplex::Dimension,
+           "Get the dimension of the simplicial complex - maximum dimension of "
+           "simplices")
+      .def("EulerCharacteristic", &SimplicialComplex::EulerCharacteristic,
+           "Get the Euler characteristic of the simplicial complex")
+
       .def("BuildDowkerComplex", &SimplicialComplex::BuildFromBinary,
-           "binary"_a, "on_column"_a = false)
+           "binary"_a, "on_column"_a = false,
+           "Build a Dowker complex from a binary matrix with flag on_column. "
+           "If on_column=true then simplices is on column, otherwise on rows")
       .def_static("CreateCliqueGraph", &SimplicialComplex::CreateCliqueGraph,
-                  "g"_a, "k"_a, "method"_a, "threads"_a)
-      .def("Clear", &SimplicialComplex::Clear);
+                  "g"_a, "k"_a, "method"_a = 0, "threads"_a = 2,
+                  "Create simplicial complex from given graph using cliques "
+                  "with size <= k")
+
+      .def("Clear", &SimplicialComplex::Clear, "Clear the simplicial complex");
 
   py::class_<HyperGraph>(m, "HyperGraph")
       .def(py::init<>())
