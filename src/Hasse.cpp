@@ -42,7 +42,6 @@ void Hasse::AddArc(const std::vector<int>& from, const std::vector<int>& to) {
   up->lower.push_back(low);
 }
 
-/// TODO: add remove from mapping
 void Hasse::RemoveNode(const std::vector<int>& node) {
   RecursiveRemoveNode(node);
 }
@@ -124,7 +123,7 @@ void Hasse::ResetCache() {
 }
 
 // O(n)
-bool Hasse::In(const std::vector<int>& a, const std::vector<int>& b) {
+bool In(const std::vector<int>& a, const std::vector<int>& b) {
   assert(is_sorted(a.begin(), a.end()));
   assert(is_sorted(b.begin(), b.end()));
 
@@ -399,8 +398,9 @@ int Hasse::GetPositionInFixedRank(std::vector<int> node) {
 }
 
 int Hasse::BettiNumber(int k) {
-  /// TODO: add runtime checks
-  /// TODO: check code
+  if (k < 0) {
+    throw std::runtime_error("k should be >= 0");
+  }
   int kernel = 0;
   if (k == 0) {
     kernel = this->nodes_with_fixed_rank_[0].size();
@@ -420,7 +420,7 @@ int Hasse::BettiNumber(int k) {
 
 int Hasse::CalculateSign(const std::vector<int>& subset,
                          const std::vector<int>& set) {
-  assert(Hasse::In(subset, set));
+  assert(In(subset, set));
   int inv = 0;
   for (size_t i = 0, j = 0; i < subset.size(); i++) {
     while (set[j] != subset[i]) {
@@ -516,7 +516,7 @@ std::vector<std::vector<int>> Hasse::Incidence(const std::vector<int>& node,
 
   size_t row = GetPositionInFixedRank(node);
 
-  /// TODO: make bitset or just links
+  /// TODO: maybe add bitset or just links for optimization
   for (size_t col = 0; col < mat[row].size(); col++) {
     if (mat[row][col]) {
       result.push_back(upper[col]->data);
@@ -1130,7 +1130,6 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(
     thread.join();
   }
 
-  // TODO: not sure about coeff
   for (size_t i = 0; i < n; i++) {
     result[i] = {nodes[i]->data, answer[i].load() / (n - 1) / (n - 2)};
   }

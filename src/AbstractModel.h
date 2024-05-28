@@ -60,6 +60,11 @@ class AbstractModel {
   std::vector<double> EigenValues(int k, int p, int q, bool weighted, int cnt);
   std::vector<double> EigenValuesAll(int k, int p, int q, bool weighted);
 
+  /// on_column = true -- every column is simplex
+  /// on_column = false -- every row is simplex
+  virtual void BuildFromBinary(std::vector<std::vector<int>> binary,
+                               bool on_column) = 0;
+
  protected:
   Hasse hasse_;
 };

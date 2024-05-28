@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Node.h"
 #include <cassert>
 #include <functional>
 #include <map>
@@ -8,6 +7,7 @@
 #include <set>
 #include <vector>
 
+#include "Node.h"
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <Spectra/SymEigsSolver.h>
@@ -117,10 +117,6 @@ class Hasse {
 
   int EulerCharacteristic();
 
-  /// TODO: move this method out of class
-  /// Check if a \in b
-  static bool In(const std::vector<int>& a, const std::vector<int>& b);
-
   static int CalculateSign(const std::vector<int>& subset,
                            const std::vector<int>& set);
 
@@ -164,3 +160,5 @@ class Hasse {
   std::map<std::string, std::function<double(std::vector<int>)>>
       custom_function_;
 };
+
+bool In(const std::vector<int>& a, const std::vector<int>& b);

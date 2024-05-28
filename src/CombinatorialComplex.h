@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "abstract_model.h"
+#include "AbstractModel.h"
 
 class CombinatorialComplex : public AbstractModel {
  public:
@@ -12,4 +12,6 @@ class CombinatorialComplex : public AbstractModel {
                      std::vector<int> ranks);
 
   std::vector<std::vector<int>> GetSubsets();
+  void BuildFromBinary(std::vector<std::vector<int>> binary,
+                       bool on_column) override;
 };

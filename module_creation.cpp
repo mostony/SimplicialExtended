@@ -200,6 +200,12 @@ PYBIND11_MODULE(simpl, m) {
            "Get the dimension of the hypergraph")
       .def("EulerCharacteristic", &HyperGraph::EulerCharacteristic,
            "Get the Euler characteristic of the hypergraph")
+
+      .def("BuildFromBinary", &HyperGraph::BuildFromBinary, "binary"_a,
+           "on_column"_a = false,
+           "Build from a binary matrix with flag on_column. "
+           "If on_column=true then edges is on column, otherwise on rows")
+
       .def("Clear", &HyperGraph::Clear, "Clear all elements in the hypergraph");
 
   py::class_<Graph>(m, "Graph")
@@ -277,6 +283,13 @@ PYBIND11_MODULE(simpl, m) {
       .def("Dimension", &Graph::Dimension, "Get the dimension of the graph")
       .def("EulerCharacteristic", &Graph::EulerCharacteristic,
            "Get the Euler characteristic of the graph")
+
+      .def(
+          "BuildFromBinary", &Graph::BuildFromBinary, "binary"_a,
+          "on_column"_a = false,
+          "Build graph using cliques from a binary matrix with flag on_column. "
+          "If on_column=true then edges is on column, otherwise on rows")
+
       .def("Clear", &Graph::Clear, "Clear all elements in the graph");
 
   py::class_<CombinatorialComplex>(m, "CombinatorialComplex")
@@ -376,6 +389,13 @@ PYBIND11_MODULE(simpl, m) {
            "Get the dimension of the combinatorial complex")
       .def("EulerCharacteristic", &CombinatorialComplex::EulerCharacteristic,
            "Get the Euler characteristic of the combinatorial complex")
+
+      .def("BuildFromBinary", &CombinatorialComplex::BuildFromBinary,
+           "binary"_a, "on_column"_a = false,
+           "Build combinatorial complex from a binary matrix with flag "
+           "on_column. "
+           "If on_column=true then edges is on column, otherwise on rows")
+
       .def("Clear", &CombinatorialComplex::Clear,
            "Clear all elements in the combinatorial complex");
 }

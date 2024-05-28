@@ -1,6 +1,6 @@
 #pragma once
 
-#include "abstract_model.h"
+#include "AbstractModel.h"
 
 /// TODO: dimension of graph???
 class Graph : public AbstractModel {
@@ -12,5 +12,6 @@ class Graph : public AbstractModel {
   /// TODO: empty graph
   std::vector<std::vector<int>> GetEdges();
 
-  void BuildFromBinary(std::vector<std::vector<int>> binary, bool on_column);
+  void BuildFromBinary(std::vector<std::vector<int>> binary,
+                       bool on_column) override;
 };

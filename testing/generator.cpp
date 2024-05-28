@@ -25,10 +25,6 @@ std::vector<std::vector<int>> GenerateRandomMatrix(int n, double p) {
 
 std::vector<std::vector<int>> GenerateImageDatasetMatrix(
     int n, int k, int random_seed = 228) {
-  // TODO
-  // auto generator = py::module::import("generate_image_dataset");
-  // auto resultobj = generator.attr("GenerateImageDataset")(n, k, random_seed);
-  // return resultobj.cast<std::vector<std::vector<int>>>();
   std::string call_string = "python3 ./testing/generate_image_dataset.py " +
                             std::to_string(n) + " " + std::to_string(k) + " " +
                             std::to_string(random_seed);

@@ -14,7 +14,7 @@ void CombinatorialComplex::Build(std::vector<std::vector<int>> data) {
       if (i == j) {
         continue;
       }
-      if (Hasse::In(data[i], data[j])) {
+      if (In(data[i], data[j])) {
         assert(nodes[i]->rank <= nodes[j]->rank);
         hasse_.AddArc(data[i], data[j]);
       }
@@ -39,7 +39,7 @@ void CombinatorialComplex::BuildWithRank(std::vector<std::vector<int>> data,
       if (i == j) {
         continue;
       }
-      if (Hasse::In(data[i], data[j])) {
+      if (In(data[i], data[j])) {
         assert(nodes[i]->rank <= nodes[j]->rank);
         hasse_.AddArc(data[i], data[j]);
       }
@@ -49,4 +49,36 @@ void CombinatorialComplex::BuildWithRank(std::vector<std::vector<int>> data,
 
 std::vector<std::vector<int>> CombinatorialComplex::GetSubsets() {
   return GetMaxFaces();
+}
+
+void CombinatorialComplex::BuildFromBinary(std::vector<std::vector<int>> binary,
+                                           bool on_column) {
+  Clear();
+  if (binary.empty()) {
+    return;
+  }
+  std::vector<std::vector<int>> data;
+
+  if (on_column == false) {
+    for (size_t i = 0; i < binary.size(); i++) {
+      std::vector<int> edge;
+      for (size_t j = 0; j < binary[i].size(); j++) {
+        if (binary[i][j]) {
+          edge.push_back(j);
+        }
+      }
+      data.push_back(edge);
+    }
+  } else {
+    for (size_t j = 0; j < binary[0].size(); j++) {
+      std::vector<int> edge;
+      for (size_t i = 0; i < binary.size(); i++) {
+        if (binary[i][j]) {
+          edge.push_back(i);
+        }
+      }
+      data.push_back(edge);
+    }
+  }
+  Build(data);
 }

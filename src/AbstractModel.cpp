@@ -1,4 +1,4 @@
-#include "abstract_model.h"
+#include "AbstractModel.h"
 #include "Hasse.h"
 
 int AbstractModel::HasseSize() {

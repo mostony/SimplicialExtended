@@ -1,7 +1,8 @@
 #pragma once
 
-#include "abstract_model.h"
 #include <vector>
+
+#include "AbstractModel.h"
 
 class SimplicialComplex : public AbstractModel {
  public:
@@ -22,7 +23,6 @@ class SimplicialComplex : public AbstractModel {
                          int max_depth, std::vector<int> cur_node,
                          std::vector<int> neighbors, SimplicialComplex* simpl);
 
-  /// on_column = true -- every column is simplex
-  /// on_column = false -- every row is simplex
-  void BuildFromBinary(std::vector<std::vector<int>> binary, bool on_column);
+  void BuildFromBinary(std::vector<std::vector<int>> binary,
+                       bool on_column) override;
 };

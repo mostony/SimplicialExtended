@@ -60,8 +60,7 @@ import sys
 import os
 
 if __name__ == "__main__":
-    print(f"Python path: {os.getcwd()}")
-    print("HIIIII")
+    print(f"Starting generate...")
     assert len(sys.argv) == 4
     n = int(sys.argv[1])
     k = int(sys.argv[2])

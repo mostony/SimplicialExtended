@@ -1,6 +1,6 @@
 #pragma once
 
-#include "abstract_model.h"
+#include "AbstractModel.h"
 
 class HyperGraph : public AbstractModel {
  public:
@@ -10,5 +10,6 @@ class HyperGraph : public AbstractModel {
 
   std::vector<std::vector<int>> GetEdges();
 
-  void BuildFromBinary(std::vector<std::vector<int>> binary, bool on_column);
+  void BuildFromBinary(std::vector<std::vector<int>> binary,
+                       bool on_column) override;
 };
