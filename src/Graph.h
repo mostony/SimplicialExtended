@@ -4,14 +4,13 @@
 
 /// TODO: dimension of graph???
 class Graph : public AbstractModel {
- public:
-  void AddEdge(int v, int u);
+   public:
+    void AddEdge(int v, int u);
 
-  void RemoveEdge(int v, int u);
+    void RemoveEdge(int v, int u);
 
-  /// TODO: empty graph
-  std::vector<std::vector<int>> GetEdges();
+    /// TODO: empty graph
+    std::vector<std::vector<int>> GetEdges();
 
-  void BuildFromBinary(std::vector<std::vector<int>> binary,
-                       bool on_column) override;
+    void BuildFromBinary(std::vector<std::vector<int>> binary, bool on_column) override;
 };

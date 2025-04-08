@@ -13,14 +13,14 @@ Include(FetchContent)
 FetchContent_Declare(
         pybind11
         GIT_REPOSITORY https://github.com/pybind/pybind11
-        GIT_TAG v2.12.0
+        GIT_TAG v2.13.6
 )
 FetchContent_MakeAvailable(pybind11)
 
 FetchContent_Declare(
         Catch2
         GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG v3.4.0
+        GIT_TAG v3.8.0
 )
 
 FetchContent_MakeAvailable(Catch2)
@@ -36,7 +36,7 @@ FetchContent_MakeAvailable(Eigen3)
 FetchContent_Declare(
         Spectra
         GIT_REPOSITORY https://github.com/yixuan/spectra.git
-        GIT_TAG v1.0.1
+        GIT_TAG v1.1.0
 )
 
 FetchContent_MakeAvailable(Spectra)
