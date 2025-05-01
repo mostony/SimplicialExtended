@@ -74,8 +74,13 @@ class Hasse {
     /// only 0 and 1
     std::vector<std::vector<int>>& IncidenceMatrix(int p, int k);
 
-    // min weight
+    /// min weight
     std::vector<std::vector<double>>& DegreeMatrix(int p, int k, bool weighted = false);
+
+    /// Adjacency matrix equals difference between lower adjacency and upper adjacency matrixes.
+    /// (i, j) == 1 iff i_th and j_th simplices of rank k are lower adjacent, but not upper
+    /// adjacent. But k==0 is special case in which i_th and j_th simplices if they upper adjacent
+    std::vector<std::vector<double>> AdjacencyMatrix(int k, int p, int q, bool weighted = false);
 
     std::vector<std::vector<int>> Incidence(const std::vector<int>& node, int k);
     int IncidenceDegree(const std::vector<int>& node, int k);
@@ -111,6 +116,11 @@ class Hasse {
                                                                   bool weighted = false);
     std::vector<std::pair<std::vector<int>, double>> BetweennessAll(int p, int max_rank,
                                                                     bool weighted = false);
+
+    std::vector<std::pair<std::vector<int>, double>> ClosenessEigen(int p, int max_rank,
+                                                                    bool weighted = false);
+    std::vector<std::pair<std::vector<int>, double>> ClosenessSubgraph(int p, int max_rank,
+                                                                       bool weighted = false);
 
     std::vector<std::pair<int, int>> FVector();
 

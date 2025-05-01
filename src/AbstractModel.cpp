@@ -26,6 +26,11 @@ std::vector<std::vector<int>> AbstractModel::Adjacency(std::vector<int> node, in
     return hasse_.Adjacency(node, k);
 }
 
+std::vector<std::vector<double>> AbstractModel::AdjacencyMatrix(int k, int p, int q,
+                                                                bool weighted) {
+    return hasse_.AdjacencyMatrix(k, p, q, weighted);
+}
+
 double AbstractModel::Degree(std::vector<int> node, int k, bool weighted) {
     return hasse_.Degree(node, k, weighted);
 }
@@ -58,6 +63,17 @@ std::vector<std::pair<std::vector<int>, double>> AbstractModel::ClosenessAll(int
 std::vector<std::pair<std::vector<int>, double>> AbstractModel::BetweennessAll(int p, int max_rank,
                                                                                bool weighted) {
     return hasse_.BetweennessAll(p, max_rank, weighted);
+}
+
+std::vector<std::pair<std::vector<int>, double>> AbstractModel::ClosenessEigen(int p, int max_rank,
+                                                                               bool weighted) {
+    return hasse_.ClosenessEigen(p, max_rank, weighted);
+}
+
+std::vector<std::pair<std::vector<int>, double>> AbstractModel::ClosenessSubgraph(int p,
+                                                                                  int max_rank,
+                                                                                  bool weighted) {
+    return hasse_.ClosenessSubgraph(p, max_rank, weighted);
 }
 
 int AbstractModel::Dimension() {

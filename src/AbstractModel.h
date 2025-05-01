@@ -28,6 +28,8 @@ class AbstractModel {
     int IncidenceDegree(std::vector<int> node, int k);
 
     std::vector<std::vector<int>> Adjacency(std::vector<int> node, int k);
+
+    std::vector<std::vector<double>> AdjacencyMatrix(int k, int p, int q, bool weighted = false);
     double Degree(std::vector<int> node, int k, bool weighted = false);
     std::vector<double> DegreeAll(int p, int k, bool weighted = false);
 
@@ -43,6 +45,10 @@ class AbstractModel {
     std::vector<std::pair<std::vector<int>, double>> BetweennessAll(int p, int max_rank,
                                                                     bool weighted = false);
 
+    std::vector<std::pair<std::vector<int>, double>> ClosenessEigen(int p, int max_rank,
+                                                                    bool weighted = false);
+    std::vector<std::pair<std::vector<int>, double>> ClosenessSubgraph(int p, int max_rank,
+                                                                       bool weighted = false);
     int Dimension();
 
     std::vector<std::pair<int, int>> FVector();

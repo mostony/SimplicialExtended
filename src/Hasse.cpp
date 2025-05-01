@@ -269,6 +269,62 @@ std::vector<std::vector<double>>& Hasse::DegreeMatrix(int p, int k, bool weighte
     return cache_degree_[{k, p, weighted}];
 }
 
+std::vector<std::vector<double>> Hasse::AdjacencyMatrix(int k, int p, int q, bool weighted) {
+    if (k == 0) {
+        return DegreeMatrix(0, q, weighted);
+    }
+    if (p >= k || k >= q) {
+        throw std::runtime_error("Should be p < k < q!");
+    }
+    if (k - p != 1 || q - k != 1) {
+        throw std::runtime_error("Not implemented");
+    }
+    // Uncomment for usual definition for closeness and betweenness
+    // return DegreeMatrix(k, q, true);
+
+    // Get upper adj matrix. Weighted == false, because only 0/1 matters.
+    auto upper_adj = DegreeMatrix(k, q, false);
+
+    std::vector<Node*> lower = GetNodesWithFixedRank(p);
+
+    const std::vector<std::vector<int>>& lower_incidence = IncidenceMatrix(p, k);
+    if (lower_incidence.empty()) {
+        return {};
+    }
+
+    int lower_size = lower_incidence.size();
+    int size = lower_incidence[0].size();
+    assert(lower.size() == lower_size);
+
+    std::vector<std::vector<double>> result(size, std::vector<double>(size));
+    for (size_t i = 0; i < size; i++) {
+        for (size_t j = 0; j < size; j++) {
+            if (i == j) {
+                continue;
+            }
+            // Check if ith and jth are upper adjacency
+            if (upper_adj[i][j]) {
+                continue;
+            }
+            std::vector<double> weights;
+            for (size_t k = 0; k < lower_size; k++) {
+                if (lower_incidence[k][i] && lower_incidence[k][j]) {
+                    if (!weighted) {
+                        result[i][j] = 1.0;
+                        break;
+                    } else {
+                        weights.push_back(lower[k]->weight);
+                    }
+                }
+            }
+            if (weighted && !weights.empty()) {
+                result[i][j] = *std::min_element(weights.begin(), weights.end());
+            }
+        }
+    }
+    return result;
+}
+
 int Hasse::Dimension() {
     while (!nodes_with_fixed_rank_.empty()) {
         auto it = std::prev(nodes_with_fixed_rank_.end());
@@ -581,7 +637,7 @@ double Hasse::Closeness(std::vector<int> node, int max_rank, bool weighted) {
         throw std::runtime_error("no other nodes");
     }
 
-    const std::vector<std::vector<double>>& g = DegreeMatrix(k, max_rank, weighted);
+    const std::vector<std::vector<double>>& g = AdjacencyMatrix(k, k - 1, max_rank, weighted);
     int n = g.size();
     size_t start = GetPositionInFixedRank(node);
 
@@ -651,7 +707,7 @@ double Hasse::Betweenness(std::vector<int> node, int max_rank, bool weighted) {
         throw std::runtime_error("too low other nodes");
     }
 
-    const std::vector<std::vector<double>>& g = DegreeMatrix(k, max_rank, weighted);
+    const std::vector<std::vector<double>>& g = AdjacencyMatrix(k, k - 1, max_rank, weighted);
     int n = g.size();
 
     const std::vector<Node*>& nodes = GetNodesWithFixedRank(k);
@@ -1017,7 +1073,7 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessAll(int p, int 
     std::vector<Node*> nodes = GetNodesWithFixedRank(p);
     int total_threads = std::thread::hardware_concurrency();
 
-    auto D = DegreeMatrix(p, max_rank, weighted);
+    auto D = AdjacencyMatrix(p, p - 1, max_rank, weighted);
     std::vector<std::vector<std::pair<int, double>>> g(n);
     for (size_t i = 0; i < n; i++) {
         for (size_t j = 0; j < n; j++) {
@@ -1036,7 +1092,7 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessAll(int p, int 
         }
     };
 
-    int chunk = std::max((int)n / total_threads, 1);
+    int chunk = std::max((int)(n + total_threads - 1) / total_threads, 1);
 
     std::vector<std::vector<std::pair<std::vector<int>, double>>> part(total_threads);
     std::vector<std::thread> threads;
@@ -1068,7 +1124,7 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(int p, in
     std::vector<Node*> nodes = GetNodesWithFixedRank(p);
     int total_threads = std::thread::hardware_concurrency();
 
-    auto D = DegreeMatrix(p, max_rank, weighted);
+    auto D = AdjacencyMatrix(p, p - 1, max_rank, weighted);
     std::vector<std::vector<std::pair<int, double>>> g(n);
     for (size_t i = 0; i < n; i++) {
         for (size_t j = 0; j < n; j++) {
@@ -1092,7 +1148,7 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(int p, in
         }
     };
 
-    int chunk = std::max((int)n / total_threads, 1);
+    int chunk = std::max((int)(n + total_threads - 1) / total_threads, 1);
 
     std::vector<std::vector<std::pair<std::vector<int>, double>>> part(total_threads);
     std::vector<std::thread> threads;
@@ -1112,6 +1168,68 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(int p, in
         result[i] = {nodes[i]->data, answer[i].load() / (n - 1) / (n - 2)};
     }
 
+    return result;
+}
+
+std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessEigen(int p, int max_rank,
+                                                                       bool weighted) {
+    size_t n = nodes_with_fixed_rank_[p].size();
+    std::vector<Node*> nodes = GetNodesWithFixedRank(p);
+    std::vector<std::pair<std::vector<int>, double>> result(n);
+
+    auto D = AdjacencyMatrix(p, p - 1, max_rank, weighted);
+
+    arma::SpMat<double> mat(n, n);
+    for (size_t i = 0; i < n; i++) {
+        for (size_t j = 0; j < n; j++) {
+            if (D[i][j]) {
+                mat(i, j) = D[i][j];
+            }
+        }
+    }
+    arma::vec eigval;
+    arma::mat eigvec;
+
+    arma::eigs_opts opts;
+    opts.maxiter = 10000;
+    constexpr std::string largest = "lm";
+    eigs_sym(eigval, eigvec, mat, 1, largest.data(), opts);
+
+    std::vector<std::vector<double>> eigen_vectors(eigvec.n_rows,
+                                                   std::vector<double>(eigvec.n_cols));
+    assert(eigvec.n_cols == 1);
+    std::vector<double> vec(eigvec.n_rows);
+    for (size_t row = 0; row < eigvec.n_rows; row++) {
+        vec[row] = eigvec(row, 0);
+    }
+
+    for (size_t i = 0; i < n; i++) {
+        result[i] = {nodes[i]->data, vec[i]};
+    }
+    return result;
+}
+
+std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessSubgraph(int p, int max_rank,
+                                                                          bool weighted) {
+    size_t n = nodes_with_fixed_rank_[p].size();
+    std::vector<std::pair<std::vector<int>, double>> result(n);
+    std::vector<Node*> nodes = GetNodesWithFixedRank(p);
+    int total_threads = std::thread::hardware_concurrency();
+
+    auto D = AdjacencyMatrix(p, p - 1, max_rank, weighted);
+    arma::SpMat<double> mat(n, n);
+    for (size_t i = 0; i < n; i++) {
+        for (size_t j = 0; j < n; j++) {
+            if (D[i][j]) {
+                mat(i, j) = D[i][j];
+            }
+        }
+    }
+    arma::Mat<double> dense = arma::Mat<double>(mat);
+    arma::Mat<double> exp = arma::expmat_sym(dense);
+    for (size_t i = 0; i < n; i++) {
+        result[i] = {nodes[i]->data, exp(i, i)};
+    }
     return result;
 }
 
