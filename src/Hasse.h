@@ -74,16 +74,19 @@ class Hasse {
     /// only 0 and 1
     std::vector<std::vector<int>>& IncidenceMatrix(int p, int k);
 
-    /// min weight
-    std::vector<std::vector<double>>& DegreeMatrix(int p, int k, bool weighted = false);
+    /// Min weight
+    std::vector<std::vector<double>>& UpperAdjacencyMatrix(int p, int k, bool weighted = false);
+
+    /// Min weight
+    std::vector<std::vector<double>> LowerAdjacencyMatrix(int p, int k, bool weighted = false);
 
     /// Adjacency matrix equals difference between lower adjacency and upper adjacency matrixes.
-    /// (i, j) == 1 iff i_th and j_th simplices of rank k are lower adjacent, but not upper
-    /// adjacent. But k==0 is special case in which i_th and j_th simplices if they upper adjacent
+    /// In other words: (i, j) == 1 iff i_th and j_th simplices of rank k are lower adjacent, but
+    /// not upper adjacent. But k==0 is special case in which i_th and j_th simplices if they upper
+    /// adjacent.
     std::vector<std::vector<double>> AdjacencyMatrix(int k, int p, int q, bool weighted = false);
 
     std::vector<std::vector<int>> Incidence(const std::vector<int>& node, int k);
-    int IncidenceDegree(const std::vector<int>& node, int k);
 
     std::vector<std::vector<int>> Adjacency(const std::vector<int>& node, int k);
     double Degree(const std::vector<int>& node, int k, bool weighted = false);
@@ -98,13 +101,18 @@ class Hasse {
     MyMatrixInt BoundaryMatrix(int k, int p);
 
     /// p < k < q
-    MyMatrixDouble LaplacianMatrix(int k, int p, int q, bool weighted);
+    MyMatrixDouble LaplacianMatrix(int k, int p, int q, bool weighted, bool normalize);
 
     std::pair<std::vector<double>, std::vector<std::vector<double>>> EigenValues(
-        int k, int p, int q, bool weighted, int cnt, const std::string& which);
+        int k, int p, int q, bool weighted, bool normalize, int cnt, const std::string& which);
     std::pair<std::vector<double>, std::vector<std::vector<double>>> EigenValuesAll(int k, int p,
                                                                                     int q,
-                                                                                    bool weighted);
+                                                                                    bool weighted,
+                                                                                    bool normalize);
+
+    /// Returns gradient, harmonic and solenoidal components
+    std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> HodgeDecomposition(
+        int k, int p, int q, const std::vector<double>& vec);
 
     /* --------------------- centrality --------------------- */
     double Closeness(std::vector<int> node, int max_rank, bool weighted = false);
@@ -132,6 +140,8 @@ class Hasse {
 
     MyMatrixDiag WeightedMatrix(int rank);
 
+    MyMatrixDiag DegreeMatrix(int p, int k, bool weighted = false);
+
    private:
     void RecursiveRemoveNode(const std::vector<int>& node);
 
@@ -146,6 +156,9 @@ class Hasse {
     std::vector<Node*> GetNodesWithFixedRank(int rank);
 
     int GetPositionInFixedRank(std::vector<int> node);
+
+    // Projection on columns
+    static Eigen::VectorXd OrthProject(const std::vector<double>& vec, const MyMatrixDouble& A);
 
     std::map<std::vector<int>, std::unique_ptr<Node>> mapping_;
 
@@ -167,6 +180,8 @@ class Hasse {
     std::map<std::array<int, 3>, std::vector<std::vector<double>>> cache_degree_;
     std::map<std::pair<int, int>, MyMatrixInt> cache_boundary_;
     std::map<std::string, std::function<double(std::vector<int>)>> custom_function_;
+
+    static constexpr double EPS = 1e-9;
 };
 
 bool In(const std::vector<int>& a, const std::vector<int>& b);

@@ -25,7 +25,6 @@ class AbstractModel {
     std::vector<std::vector<int>> GetElementsWithRank(int rank);
 
     std::vector<std::vector<int>> Incidence(std::vector<int> node, int k);
-    int IncidenceDegree(std::vector<int> node, int k);
 
     std::vector<std::vector<int>> Adjacency(std::vector<int> node, int k);
 
@@ -61,12 +60,16 @@ class AbstractModel {
 
     MyMatrixDiag Weights(int rank);
 
-    MyMatrixDouble LaplacianMatrix(int k, int p, int q, bool weighted = false);
+    MyMatrixDouble LaplacianMatrix(int k, int p, int q, bool weighted = false,
+                                   bool normalize = false);
     std::pair<std::vector<double>, std::vector<std::vector<double>>> EigenValues(
-        int k, int p, int q, bool weighted, int cnt, const std::string& which);
+        int k, int p, int q, bool weighted, bool normalize, int cnt, const std::string& which);
     std::pair<std::vector<double>, std::vector<std::vector<double>>> EigenValuesAll(int k, int p,
                                                                                     int q,
-                                                                                    bool weighted);
+                                                                                    bool weighted,
+                                                                                    bool normalize);
+    std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> HodgeDecomposition(
+        int k, int p, int q, const std::vector<double>& vec);
 
     /// on_column = true -- every column is simplex
     /// on_column = false -- every row is simplex

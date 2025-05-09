@@ -51,33 +51,44 @@ PYBIND11_MODULE(simpl, m) {
              "Get the boundary matrix. Should be: k > p")
         .def("Incidence", &SimplicialComplex::Incidence, "node"_a, "k"_a,
              "Get all nodes k-incidence to given node")
-        .def("IncidenceDegree", &SimplicialComplex::IncidenceDegree, "node"_a, "k"_a,
-             "Get number of nodes k-incidence to given node")
         .def("Adjacency", &SimplicialComplex::Adjacency, "node"_a, "k"_a,
              "Get all nodes k-adjacence to given node")
+        .def("AdjacencyMatrix", &SimplicialComplex::AdjacencyMatrix, "k"_a, "p"_a, "q"_a,
+             "weighted"_a = false, "Get all nodes adjacency matrix")
         .def("Degree", &SimplicialComplex::Degree, "node"_a, "k"_a, "weighted"_a = false,
              "Get sum of weights of all k-adjacence to given node.")
         .def("DegreeAll", &SimplicialComplex::DegreeAll, "p"_a, "k"_a, "weighted"_a = false,
              "Get vector of degrees of all nodes with rank=p with k-adjacence")
 
         .def("LaplacianMatrix", &SimplicialComplex::LaplacianMatrix, "k"_a, "p"_a, "q"_a,
-             "weighted"_a = false, "Get the laplacian matrix. Should be: p < k < q")
+             "weighted"_a = false, "normalize"_a = false,
+             "Get the laplacian matrix. Should be: p < k < q")
         .def("EigenValues", &SimplicialComplex::EigenValues, "k"_a, "p"_a, "q"_a, "weighted"_a,
-             "cnt"_a, "which"_a,
+             "normalize"_a, "cnt"_a, "which"_a,
              "Find cnt eigenvalues and eigenvectors of the Laplacian matrix. "
              "Should be: p < k "
              "< q")
         .def("EigenValuesAll", &SimplicialComplex::EigenValuesAll, "k"_a, "p"_a, "q"_a,
-             "weighted"_a,
+             "weighted"_a, "normalize"_a,
              "Get all the eigenvalues and eigenvectors of the Laplacian matrix. Should be: p < k "
              "< q")
 
+        .def("HodgeDecomposition", &SimplicialComplex::HodgeDecomposition, "k"_a, "p"_a, "q"_a,
+             "vec"_a, "Decompose vector in gradient, harmonic and solenoidal components")
         .def("BettiNumber", &SimplicialComplex::BettiNumber, "k"_a,
              "Get the k betti number of simplicial complex")
         .def("Closeness", &SimplicialComplex::Closeness, "node"_a, "q"_a, "weighted"_a = false,
              "Calculate closeness for given node via nodes with rank=q")
         .def("ClosenessAll", &SimplicialComplex::ClosenessAll, "k"_a, "q"_a, "weighted"_a = false,
              "Calculate closeness for all node with rank=k via nodes with rank=q")
+        .def(
+            "ClosenessEigen", &SimplicialComplex::ClosenessEigen, "p"_a, "max_rank"_a,
+            "weighted"_a = false,
+            "Calculate eigen closeness for all node with rank=p via upper nodes with rank=max_rank")
+        .def("ClosenessSubgraph", &SimplicialComplex::ClosenessSubgraph, "p"_a, "max_rank"_a,
+             "weighted"_a = false,
+             "Calculate subgraph closeness for all node with rank=p via upper nodes with "
+             "rank=max_rank")
         .def("Betweenness", &SimplicialComplex::Betweenness, "node"_a, "q"_a, "weighted"_a = false,
              "Calculate betweenness for given node via nodes with rank=q")
         .def("BetweennessAll", &SimplicialComplex::BetweennessAll, "k"_a, "q"_a,
@@ -126,16 +137,19 @@ PYBIND11_MODULE(simpl, m) {
              "Get the weights of all nodes in the hypergraph with the specified "
              "rank")
         .def("LaplacianMatrix", &HyperGraph::LaplacianMatrix, "k"_a, "p"_a, "q"_a,
-             "weighted"_a = false,
+             "weighted"_a = false, "normalize"_a = false,
              "Get the Laplacian matrix of the hypergraph. Should be: p < k < q")
-        .def("EigenValues", &HyperGraph::EigenValues, "k"_a, "p"_a, "q"_a, "weighted"_a, "cnt"_a,
-             "which"_a,
+        .def("EigenValues", &HyperGraph::EigenValues, "k"_a, "p"_a, "q"_a, "weighted"_a,
+             "normalize"_a, "cnt"_a, "which"_a,
              "Find cnt eigenvalues and eigenvectors of the Laplacian matrix. "
              "Should be: p < k "
              "< q")
         .def("EigenValuesAll", &HyperGraph::EigenValuesAll, "k"_a, "p"_a, "q"_a, "weighted"_a,
+             "normalize"_a,
              "Get all the eigenvalues and eigenvectors of the Laplacian matrix. Should be: p < k "
              "< q")
+        .def("HodgeDecomposition", &HyperGraph::HodgeDecomposition, "k"_a, "p"_a, "q"_a, "vec"_a,
+             "Decompose vector in gradient, harmonic and solenoidal components")
         .def("ThresholdAbove", &HyperGraph::ThresholdAbove, "name"_a, "threshold"_a,
              "Threshold the hypergraph by retaining elements above the given "
              "threshold for the specified function name. The function should be "
@@ -151,10 +165,10 @@ PYBIND11_MODULE(simpl, m) {
              "Get the boundary matrix of the hypergraph. Should be: k > p")
         .def("Incidence", &HyperGraph::Incidence, "node"_a, "k"_a,
              "Get all nodes with k-incidence to the given node")
-        .def("IncidenceDegree", &HyperGraph::IncidenceDegree, "node"_a, "k"_a,
-             "Get the number of nodes with k-incidence to the given node")
         .def("Adjacency", &HyperGraph::Adjacency, "node"_a, "k"_a,
              "Get all nodes with k-adjacency to the given node")
+        .def("AdjacencyMatrix", &HyperGraph::AdjacencyMatrix, "k"_a, "p"_a, "q"_a,
+             "weighted"_a = false, "Get all nodes adjacency matrix")
         .def("Degree", &HyperGraph::Degree, "node"_a, "k"_a, "weighted"_a = false,
              "Get the sum of weights of all k-adjacent nodes to the given node")
         .def("DegreeAll", &HyperGraph::DegreeAll, "rank"_a, "k"_a, "weighted"_a = false,
@@ -168,6 +182,14 @@ PYBIND11_MODULE(simpl, m) {
         .def("ClosenessAll", &HyperGraph::ClosenessAll, "k"_a, "q"_a, "weighted"_a = false,
              "Calculate the closeness centrality for all nodes with rank=k via "
              "nodes with rank=q")
+        .def(
+            "ClosenessEigen", &HyperGraph::ClosenessEigen, "p"_a, "max_rank"_a,
+            "weighted"_a = false,
+            "Calculate eigen closeness for all node with rank=p via upper nodes with rank=max_rank")
+        .def("ClosenessSubgraph", &HyperGraph::ClosenessSubgraph, "p"_a, "max_rank"_a,
+             "weighted"_a = false,
+             "Calculate subgraph closeness for all node with rank=p via upper nodes with "
+             "rank=max_rank")
         .def("Betweenness", &HyperGraph::Betweenness, "node"_a, "q"_a, "weighted"_a = false,
              "Calculate the betweenness centrality for the given node via nodes "
              "with rank=q")
@@ -206,15 +228,18 @@ PYBIND11_MODULE(simpl, m) {
              "Get the weights of all node/edges in the graph with the specified "
              "rank")
         .def("LaplacianMatrix", &Graph::LaplacianMatrix, "k"_a, "p"_a, "q"_a, "weighted"_a = false,
-             "Get the Laplacian matrix of the graph")
-        .def("EigenValues", &Graph::EigenValues, "k"_a, "p"_a, "q"_a, "weighted"_a, "cnt"_a,
-             "which"_a,
+             "normalize"_a = false, "Get the Laplacian matrix of the graph")
+        .def("EigenValues", &Graph::EigenValues, "k"_a, "p"_a, "q"_a, "weighted"_a, "normalize"_a,
+             "cnt"_a, "which"_a,
              "Find cnt eigenvalues and eigenvectors of the Laplacian matrix. "
              "Should be: p < k "
              "< q")
         .def("EigenValuesAll", &Graph::EigenValuesAll, "k"_a, "p"_a, "q"_a, "weighted"_a,
+             "normalize"_a,
              "Get all the eigenvalues and eigenvectors of the Laplacian matrix. Should be: p < k "
              "< q")
+        .def("HodgeDecomposition", &Graph::HodgeDecomposition, "k"_a, "p"_a, "q"_a, "vec"_a,
+             "Decompose vector in gradient, harmonic and solenoidal components")
         .def("ThresholdAbove", &Graph::ThresholdAbove, "name"_a, "threshold"_a,
              "Threshold the graph by retaining elements above the given "
              "threshold for the specified function name. The function should be "
@@ -229,10 +254,10 @@ PYBIND11_MODULE(simpl, m) {
              "Get the boundary matrix of the graph. Should be: k > p")
         .def("Incidence", &Graph::Incidence, "node"_a, "k"_a,
              "Get all nodes with k-incidence to the given node")
-        .def("IncidenceDegree", &Graph::IncidenceDegree, "node"_a, "k"_a,
-             "Get the number of nodes with k-incidence to the given node")
         .def("Adjacency", &Graph::Adjacency, "node"_a, "k"_a,
              "Get all nodes with k-adjacency to the given node")
+        .def("AdjacencyMatrix", &Graph::AdjacencyMatrix, "k"_a, "p"_a, "q"_a, "weighted"_a = false,
+             "Get all nodes adjacency matrix")
         .def("Degree", &Graph::Degree, "node"_a, "k"_a, "weighted"_a = false,
              "Get the sum of weights of all k-adjacent nodes to the given node")
         .def("DegreeAll", &Graph::DegreeAll, "rank"_a, "k"_a, "weighted"_a = false,
@@ -245,6 +270,13 @@ PYBIND11_MODULE(simpl, m) {
         .def("ClosenessAll", &Graph::ClosenessAll, "k"_a, "q"_a, "weighted"_a = false,
              "Calculate the closeness centrality for all nodes with rank=k via "
              "nodes with rank=q")
+        .def(
+            "ClosenessEigen", &Graph::ClosenessEigen, "p"_a, "max_rank"_a, "weighted"_a = false,
+            "Calculate eigen closeness for all node with rank=p via upper nodes with rank=max_rank")
+        .def("ClosenessSubgraph", &Graph::ClosenessSubgraph, "p"_a, "max_rank"_a,
+             "weighted"_a = false,
+             "Calculate subgraph closeness for all node with rank=p via upper nodes with "
+             "rank=max_rank")
         .def("Betweenness", &Graph::Betweenness, "node"_a, "q"_a, "weighted"_a = false,
              "Calculate the betweenness centrality for the given node via nodes "
              "with rank=q")
@@ -284,18 +316,20 @@ PYBIND11_MODULE(simpl, m) {
              "Get the weights of all nodes in the combinatorial complex with the "
              "specified rank")
         .def("LaplacianMatrix", &CombinatorialComplex::LaplacianMatrix, "k"_a, "p"_a, "q"_a,
-             "weighted"_a = false,
+             "weighted"_a = false, "normalize"_a = false,
              "Get the Laplacian matrix of the combinatorial complex. Should be: "
              "p < k < q")
         .def("EigenValues", &CombinatorialComplex::EigenValues, "k"_a, "p"_a, "q"_a, "weighted"_a,
-             "cnt"_a, "which"_a,
+             "normalize"_a, "cnt"_a, "which"_a,
              "Find cnt eigenvalues and eigenvectors of the Laplacian matrix. "
              "Should be: p < k "
              "< q")
         .def("EigenValuesAll", &CombinatorialComplex::EigenValuesAll, "k"_a, "p"_a, "q"_a,
-             "weighted"_a,
+             "weighted"_a, "normalize"_a,
              "Get all the eigenvalues and eigenvectors of the Laplacian matrix. Should be: p < k "
              "< q")
+        .def("HodgeDecomposition", &CombinatorialComplex::HodgeDecomposition, "k"_a, "p"_a, "q"_a,
+             "vec"_a, "Decompose vector in gradient, harmonic and solenoidal components")
         .def("ThresholdAbove", &CombinatorialComplex::ThresholdAbove, "name"_a, "threshold"_a,
              "Threshold the combinatorial complex by retaining elements above "
              "the given threshold for the specified function name. The function "
@@ -314,10 +348,10 @@ PYBIND11_MODULE(simpl, m) {
              "> p")
         .def("Incidence", &CombinatorialComplex::Incidence, "node"_a, "k"_a,
              "Get all nodes with k-incidence to the given node")
-        .def("IncidenceDegree", &CombinatorialComplex::IncidenceDegree, "node"_a, "k"_a,
-             "Get the number of nodes with k-incidence to the given node")
         .def("Adjacency", &CombinatorialComplex::Adjacency, "node"_a, "k"_a,
              "Get all nodes with k-adjacency to the given node")
+        .def("AdjacencyMatrix", &CombinatorialComplex::AdjacencyMatrix, "k"_a, "p"_a, "q"_a,
+             "weighted"_a = false, "Get all nodes adjacency matrix")
         .def("Degree", &CombinatorialComplex::Degree, "node"_a, "k"_a, "weighted"_a = false,
              "Get the sum of weights of all k-adjacent nodes to the given node")
         .def("DegreeAll", &CombinatorialComplex::DegreeAll, "rank"_a, "k"_a, "weighted"_a = false,
@@ -332,6 +366,14 @@ PYBIND11_MODULE(simpl, m) {
              "weighted"_a = false,
              "Calculate the closeness centrality for all nodes with rank=k via "
              "nodes with rank=q")
+        .def(
+            "ClosenessEigen", &CombinatorialComplex::ClosenessEigen, "p"_a, "max_rank"_a,
+            "weighted"_a = false,
+            "Calculate eigen closeness for all node with rank=p via upper nodes with rank=max_rank")
+        .def("ClosenessSubgraph", &CombinatorialComplex::ClosenessSubgraph, "p"_a, "max_rank"_a,
+             "weighted"_a = false,
+             "Calculate subgraph closeness for all node with rank=p via upper nodes with "
+             "rank=max_rank")
         .def("Betweenness", &CombinatorialComplex::Betweenness, "node"_a, "q"_a,
              "weighted"_a = false,
              "Calculate the betweenness centrality for the given node via nodes "

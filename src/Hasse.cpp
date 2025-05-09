@@ -15,7 +15,9 @@
 #include <Eigen/src/Core/Matrix.h>
 #include <Eigen/src/Core/util/Constants.h>
 #include <armadillo>
-
+#include <Eigen/Dense>
+#include <Eigen/SparseQR>
+#include "Eigen/src/Core/GlobalFunctions.h"
 #include "Node.h"
 
 void Hasse::CreateNode(const std::vector<int>& data, int rank) {
@@ -224,7 +226,7 @@ std::vector<std::vector<int>>& Hasse::IncidenceMatrix(int p, int k) {
     return cache_incidence_[std::make_pair(k, p)];
 }
 
-std::vector<std::vector<double>>& Hasse::DegreeMatrix(int p, int k, bool weighted) {
+std::vector<std::vector<double>>& Hasse::UpperAdjacencyMatrix(int p, int k, bool weighted) {
     if (k < p) {
         throw std::runtime_error("k < p");
     }
@@ -269,22 +271,7 @@ std::vector<std::vector<double>>& Hasse::DegreeMatrix(int p, int k, bool weighte
     return cache_degree_[{k, p, weighted}];
 }
 
-std::vector<std::vector<double>> Hasse::AdjacencyMatrix(int k, int p, int q, bool weighted) {
-    if (k == 0) {
-        return DegreeMatrix(0, q, weighted);
-    }
-    if (p >= k || k >= q) {
-        throw std::runtime_error("Should be p < k < q!");
-    }
-    if (k - p != 1 || q - k != 1) {
-        throw std::runtime_error("Not implemented");
-    }
-    // Uncomment for usual definition for closeness and betweenness
-    // return DegreeMatrix(k, q, true);
-
-    // Get upper adj matrix. Weighted == false, because only 0/1 matters.
-    auto upper_adj = DegreeMatrix(k, q, false);
-
+std::vector<std::vector<double>> Hasse::LowerAdjacencyMatrix(int p, int k, bool weighted) {
     std::vector<Node*> lower = GetNodesWithFixedRank(p);
 
     const std::vector<std::vector<int>>& lower_incidence = IncidenceMatrix(p, k);
@@ -300,10 +287,6 @@ std::vector<std::vector<double>> Hasse::AdjacencyMatrix(int k, int p, int q, boo
     for (size_t i = 0; i < size; i++) {
         for (size_t j = 0; j < size; j++) {
             if (i == j) {
-                continue;
-            }
-            // Check if ith and jth are upper adjacency
-            if (upper_adj[i][j]) {
                 continue;
             }
             std::vector<double> weights;
@@ -323,6 +306,38 @@ std::vector<std::vector<double>> Hasse::AdjacencyMatrix(int k, int p, int q, boo
         }
     }
     return result;
+}
+
+std::vector<std::vector<double>> Hasse::AdjacencyMatrix(int k, int p, int q, bool weighted) {
+    if (k == 0) {
+        return UpperAdjacencyMatrix(0, q, weighted);
+    }
+    if (p >= k || k >= q) {
+        throw std::runtime_error("Should be p < k < q!");
+    }
+    if (k - p != 1 || q - k != 1) {
+        throw std::runtime_error("Not implemented");
+    }
+
+    // Get upper adj matrix. Weighted == false, because only 0/1 matters.
+    auto upper_adj = UpperAdjacencyMatrix(k, q, false);
+    // Get lower adj matrix
+    auto lower_adj = LowerAdjacencyMatrix(p, k, weighted);
+
+    size_t size = lower_adj.size();
+
+    for (size_t i = 0; i < size; i++) {
+        for (size_t j = 0; j < size; j++) {
+            if (i == j) {
+                continue;
+            }
+            // Check if ith and jth are upper adjacency
+            if (upper_adj[i][j]) {
+                lower_adj[i][j] = 0.0;
+            }
+        }
+    }
+    return lower_adj;
 }
 
 int Hasse::Dimension() {
@@ -450,6 +465,21 @@ int Hasse::GetPositionInFixedRank(std::vector<int> node) {
     throw std::runtime_error("unknown node");
 }
 
+Eigen::VectorXd Hasse::OrthProject(const std::vector<double>& vec, const MyMatrixDouble& A) {
+    Eigen::VectorXd v = Eigen::VectorXd::Map(vec.data(), vec.size());
+    Eigen::SparseQR<MyMatrixDouble, Eigen::COLAMDOrdering<int>> qr;
+    qr.compute(A);
+    if (qr.info() != Eigen::Success) {
+        throw std::runtime_error("QR decomposition failed.");
+    }
+    Eigen::VectorXd x = qr.solve(v);
+    if (qr.info() != Eigen::Success) {
+        throw std::runtime_error("QR solve failed.");
+    }
+    Eigen::VectorXd projection = A * x;
+    return projection;
+}
+
 int Hasse::BettiNumber(int k) {
     if (k < 0) {
         throw std::runtime_error("k should be >= 0");
@@ -487,7 +517,12 @@ MyMatrixInt Hasse::BoundaryMatrix(int k, int p) {
     if (k <= p) {
         throw std::runtime_error("k <= p");
     }
-
+    // -1 rank contains only empty set. Boundary matrix should equals zero.
+    if (p == -1) {
+        std::vector<Node*> upper = GetNodesWithFixedRank(k);
+        MyMatrixInt result(1, upper.size());
+        return result;
+    }
     std::vector<Node*> lower = GetNodesWithFixedRank(p);
     std::vector<Node*> upper = GetNodesWithFixedRank(k);
 
@@ -515,17 +550,17 @@ MyMatrixInt Hasse::BoundaryMatrix(int k, int p) {
     return result;
 }
 
-MyMatrixDouble Hasse::LaplacianMatrix(int k, int p, int q, bool weighted) {
+MyMatrixDouble Hasse::LaplacianMatrix(int k, int p, int q, bool weighted, bool normalize) {
     if (p >= k || k >= q) {
         throw std::runtime_error("Should be p < k < q!");
     }
     assert(p < k && k < q);
+    MyMatrixDouble result;
     if (!weighted) {
         auto b1 = BoundaryMatrix(k, p);
         auto b2 = BoundaryMatrix(q, k);
-        MyMatrixInt result = b1.transpose() * b1 + b2 * b2.transpose();
-        result.prune(0);
-        return result.cast<double>();
+        MyMatrixInt tmp = b1.transpose() * b1 + b2 * b2.transpose();
+        result = tmp.cast<double>();
     } else {
         // important lines, can't cast from temporary object
         auto raw_b1 = BoundaryMatrix(k, p);
@@ -536,12 +571,32 @@ MyMatrixDouble Hasse::LaplacianMatrix(int k, int p, int q, bool weighted) {
         auto wp = WeightedMatrix(p);
         auto wk = WeightedMatrix(k);
         auto wq = WeightedMatrix(q);
-        MyMatrixDouble first = b1.transpose() * wp.inverse() * b1 * wk;
-        MyMatrixDouble second = wk.inverse() * b2 * wq * b2.transpose();
-        MyMatrixDouble result = first + second;
-        result.prune(0.0);
-        return result;
+        // Previous definition
+        // MyMatrixDouble first = b1.transpose() * wp.inverse() * b1 * wk;
+        // MyMatrixDouble second = wk.inverse() * b2 * wq * b2.transpose();
+
+        // Inverse??? TODO: test
+        MyMatrixDouble first = b1.transpose() * wp.inverse() * b1;
+        MyMatrixDouble second = b2 * wq * b2.transpose();
+
+        result = first + second;
     }
+
+    // Normalization
+    if (normalize) {
+        auto D = DegreeMatrix(k, q, weighted);
+        MyMatrixDiag d_inv_sqrt(D.rows());
+        for (size_t i = 0; i < D.rows(); i++) {
+            if (std::abs(D.diagonal()[i]) < EPS) {
+                D.diagonal()[i] = 1;
+            }
+            assert(std::abs(D.diagonal()[i]) >= EPS);
+            d_inv_sqrt.diagonal()[i] = sqrt(1.0 / D.diagonal()[i]);
+        }
+        result = d_inv_sqrt * result * d_inv_sqrt;
+    }
+    result.prune(0.0);
+    return result;
 }
 
 void Merge(Hasse& current, Hasse& other) {
@@ -576,14 +631,10 @@ std::vector<std::vector<int>> Hasse::Incidence(const std::vector<int>& node, int
     return result;
 }
 
-int Hasse::IncidenceDegree(const std::vector<int>& node, int k) {
-    return Incidence(node, k).size();
-}
-
 std::vector<std::vector<int>> Hasse::Adjacency(const std::vector<int>& node, int k) {
     int p = GetNode(node)->rank;
     std::vector<std::vector<int>> result;
-    const std::vector<std::vector<double>>& mat = DegreeMatrix(p, k);
+    const std::vector<std::vector<double>>& mat = UpperAdjacencyMatrix(p, k);
 
     std::vector<Node*> nodes = GetNodesWithFixedRank(p);
 
@@ -598,19 +649,15 @@ std::vector<std::vector<int>> Hasse::Adjacency(const std::vector<int>& node, int
 }
 
 double Hasse::Degree(const std::vector<int>& node, int k, bool weighted) {
+    auto edges = Incidence(node, k);
     if (!weighted) {
-        return Adjacency(node, k).size();
+        return edges.size();
     } else {
-        auto adj = Adjacency(node, k);
-        if (adj.empty()) {
-            return 0.0;
+        double weight = 0.0;
+        for (const auto& edge : edges) {
+            weight += GetNode(edge)->weight;
         }
-        double sum = 0;
-        for (auto v : adj) {
-            sum += GetNode(v)->weight;
-        }
-        return sum;
-        // return sum / adj.size();
+        return weight;
     }
 }
 
@@ -1096,7 +1143,6 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessAll(int p, int 
 
     std::vector<std::vector<std::pair<std::vector<int>, double>>> part(total_threads);
     std::vector<std::thread> threads;
-
     for (size_t i = 0; i < total_threads; i++) {
         size_t l = i * chunk;
         size_t r = std::min((size_t)(i + 1) * chunk, n);
@@ -1305,12 +1351,21 @@ MyMatrixDiag Hasse::WeightedMatrix(int rank) {
     for (size_t i = 0; i < nodes.size(); i++) {
         result.diagonal()[i] = nodes[i]->weight;
     }
-    return std::move(result);
+    return result;
+}
+
+MyMatrixDiag Hasse::DegreeMatrix(int p, int k, bool weighted) {
+    auto degrees = DegreeAll(p, k, weighted);
+    MyMatrixDiag result(degrees.size());
+    for (size_t i = 0; i < degrees.size(); i++) {
+        result.diagonal()[i] = degrees[i];
+    }
+    return result;
 }
 
 std::pair<std::vector<double>, std::vector<std::vector<double>>> Hasse::EigenValues(
-    int k, int p, int q, bool weighted, int cnt, const std::string& which) {
-    auto L = LaplacianMatrix(k, p, q, weighted);
+    int k, int p, int q, bool weighted, bool normalize, int cnt, const std::string& which) {
+    auto L = LaplacianMatrix(k, p, q, weighted, normalize);
 
     size_t n = L.cols();
     if (cnt > n - 1) {
@@ -1328,21 +1383,13 @@ std::pair<std::vector<double>, std::vector<std::vector<double>>> Hasse::EigenVal
     arma::mat eigvec;
 
     arma::eigs_opts opts;
-    opts.maxiter = 10000;  // increase max iterations to 10000
-
-    // eigval.print("Eigenvalues:");
-    // eigvec.print("eigenvec:");
+    opts.maxiter = 20000;
+    opts.tol = 1e-9;
 
     eigs_sym(eigval, eigvec, armL, cnt, which.data(), opts);
     // TODO: fix make conv_to
     // TODO: add condition check on which
     // TODO: Sort eigvalues
-    // std::cerr << "Here\n";
-    // std::vector<std::vector<double>> eigen_vectors =
-    //     arma::conv_to<std::vector<std::vector<double>>>::from(eigvec);
-    // std::cerr << "Here\n";
-    // std::vector<double> eigen_values = arma::conv_to<std::vector<double>>::from(eigval.as_col());
-    // std::cerr << "Here\n";
     std::vector<std::vector<double>> eigen_vectors(eigvec.n_rows,
                                                    std::vector<double>(eigvec.n_cols));
     for (size_t row = 0; row < eigvec.n_rows; row++) {
@@ -1355,54 +1402,11 @@ std::pair<std::vector<double>, std::vector<std::vector<double>>> Hasse::EigenVal
         eigen_values.emplace_back(x);
     }
     return std::make_pair(eigen_values, eigen_vectors);
-
-    // std::vector<double> result;
-    // for (auto x : eigval) {
-    //     result.push_back(x);
-    // }
-    // std::sort(result.begin(), result.end());
-    // std::reverse(result.begin(), result.end());
-    // return result;
-
-    // Maybe spectra not best idea...
-
-    // Spectra::SparseSymMatProd<double, Eigen::Lower, Eigen::RowMajor, int>
-    // op(L);
-
-    // // similar
-    // //
-    // https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigsh.html
-    // int ncv = std::max(2 * cnt + 1, 20);
-
-    // if (ncv > n) {
-    //   ncv = n;
-    // }
-
-    // Spectra::SymEigsSolver<
-    //     Spectra::SparseSymMatProd<double, Eigen::Lower, Eigen::RowMajor, int>>
-    //     eg(op, cnt, ncv);
-
-    // eg.init();
-
-    // int nconv = eg.compute(Spectra::SortRule::LargestMagn, 1000, 1e-20);
-
-    // Eigen::Matrix<double, -1, 1> values;
-    // if (eg.info() == Spectra::CompInfo::Successful) {
-    //   values = eg.eigenvalues();
-    // } else {
-    //   throw std::runtime_error("Can't calculate spectre");
-    // }
-
-    // std::vector<double> result;
-    // for (auto x : values) {
-    //   result.push_back(x);
-    // }
-    // return result;
 }
 
 std::pair<std::vector<double>, std::vector<std::vector<double>>> Hasse::EigenValuesAll(
-    int k, int p, int q, bool weighted) {
-    auto L = LaplacianMatrix(k, p, q, weighted);
+    int k, int p, int q, bool weighted, bool normalize) {
+    auto L = LaplacianMatrix(k, p, q, weighted, normalize);
 
     arma::mat A(L.cols(), L.cols());
     for (size_t i = 0; i < L.cols(); i++) {
@@ -1434,6 +1438,33 @@ std::pair<std::vector<double>, std::vector<std::vector<double>>> Hasse::EigenVal
     //     arma::conv_to<std::vector<std::vector<double>>>::from(eigvec);
     // std::vector<double> eigen_values = arma::conv_to<std::vector<double>>::from(eigval.as_col());
     // return std::make_pair(eigen_values, eigen_vectors);
+}
+
+std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> Hasse::HodgeDecomposition(
+    int k, int p, int q, const std::vector<double>& vec) {
+    size_t shape = vec.size();
+    // TODO: make O(1) check
+    if (GetElementsWithRank(k).size() != shape) {
+        throw std::runtime_error("Bad vector size");
+    }
+    Eigen::VectorXd v = Eigen::VectorXd::Map(vec.data(), vec.size());
+    Eigen::VectorXd grad(shape), sol(shape), harm(shape);
+    grad.fill(0);
+    if (p != -1) {
+        // g = B1^T * (B1 * B1^T)^-1 * B1 * v
+        MyMatrixDouble B1 = BoundaryMatrix(k, p).template cast<double>();
+        MyMatrixDouble B1t = B1.transpose();
+        grad = OrthProject(vec, B1);
+    }
+    MyMatrixDouble B2 = BoundaryMatrix(q, k).template cast<double>();
+    B2.makeCompressed();
+    sol = OrthProject(vec, B2);
+    harm = v - sol - grad;
+    std::vector<double> vec_grad(grad.data(), grad.data() + grad.size());
+    std::vector<double> vec_sol(sol.data(), sol.data() + sol.size());
+    std::vector<double> vec_harm(harm.data(), harm.data() + harm.size());
+    // TODO: make better
+    return std::make_tuple(vec_grad, vec_harm, vec_sol);
 }
 
 std::vector<std::vector<int>> Hasse::GetElementsWithRank(int rank) {
