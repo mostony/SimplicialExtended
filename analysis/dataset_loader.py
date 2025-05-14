@@ -2,17 +2,53 @@ from typing import List, Tuple
 
 
 class DatasetLoader:
-    def load_dataset(name: str) -> Tuple[List[List[int]], List[int]]:
+
+    def load_dataset(name: str, load_labels=True):
         """
         Get (hyperedges, labels) by name of dataset
         """
         sets = FileDatasetLoader.load_hyper_edges(
             f"./data/{name}/hyperedges-{name}.txt"
         )
-        true_labels = FileDatasetLoader.load_node_labels(
-            f"./data/{name}/node-labels-{name}.txt"
-        )
-        return (sets, true_labels)
+
+        # Get all not isolated vertices
+        not_isolated = set()
+        for s in sets:
+            for v in s:
+                not_isolated.add(v)
+
+        # Compress vertices in [0, V)
+        sorted_values = sorted(not_isolated)
+        value_to_compressed = {val: idx for idx, val in enumerate(sorted_values)}
+
+        filtered_sets = []
+        for row in sets:
+            s = row
+            for i in range(len(s)):
+                s[i] = value_to_compressed[s[i]]
+
+            if len(s) == 1:
+                s.append(s[0])
+            assert len(s) > 0
+            filtered_sets.append(s)
+
+        if load_labels:
+            true_labels = FileDatasetLoader.load_node_labels(
+                f"./data/{name}/node-labels-{name}.txt"
+            )
+            filtered_labels = [true_labels[i] for i in sorted(not_isolated)]
+            return filtered_sets, filtered_labels
+
+        return filtered_sets
+
+    @staticmethod
+    def _add_loops(sets: List[List[int]], V: int) -> List[List[int]]:
+        """
+        Adds for every vertex loop to deal with isolated vertices
+        """
+        for v in range(V):
+            sets.append([v, v])
+        return sets
 
 
 class FileDatasetLoader:
@@ -45,7 +81,7 @@ class FileDatasetLoader:
         true_labels = []
         with open(path, "r") as file:
             for line in file:
-                true_labels.append(int(line))
+                true_labels.append(int(line) - 1)
         return true_labels
 
 
