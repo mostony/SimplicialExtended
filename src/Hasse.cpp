@@ -571,15 +571,18 @@ MyMatrixDouble Hasse::LaplacianMatrix(int k, int p, int q, bool weighted, bool n
         auto wp = WeightedMatrix(p);
         auto wk = WeightedMatrix(k);
         auto wq = WeightedMatrix(q);
-        // Previous definition
-        // MyMatrixDouble first = b1.transpose() * wp.inverse() * b1 * wk;
-        // MyMatrixDouble second = wk.inverse() * b2 * wq * b2.transpose();
+        MyMatrixDouble first = b1.transpose() * wp.inverse() * b1 * wk;
+        MyMatrixDouble second = wk.inverse() * b2 * wq * b2.transpose();
 
-        // Inverse??? TODO: test
-        MyMatrixDouble first = b1.transpose() * wp.inverse() * b1;
-        MyMatrixDouble second = b2 * wq * b2.transpose();
+        // Variant without symmetrization
+        // MyMatrixDouble first = b1.transpose() * wp.inverse() * b1;
+        // MyMatrixDouble second = b2 * wq * b2.transpose();
+        // result = first + second;
 
-        result = first + second;
+        MyMatrixDouble firstT = first.transpose();
+        MyMatrixDouble secondT = second.transpose();
+
+        result = (first + firstT) / 2 + (second + secondT) / 2;
     }
 
     // Normalization
@@ -1217,8 +1220,8 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::BetweennessAll(int p, in
     return result;
 }
 
-std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessEigen(int p, int max_rank,
-                                                                       bool weighted) {
+std::vector<std::pair<std::vector<int>, double>> Hasse::EigenCentrality(int p, int max_rank,
+                                                                        bool weighted) {
     size_t n = nodes_with_fixed_rank_[p].size();
     std::vector<Node*> nodes = GetNodesWithFixedRank(p);
     std::vector<std::pair<std::vector<int>, double>> result(n);
@@ -1255,8 +1258,8 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessEigen(int p, in
     return result;
 }
 
-std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessSubgraph(int p, int max_rank,
-                                                                          bool weighted) {
+std::vector<std::pair<std::vector<int>, double>> Hasse::SubgraphCentrality(int p, int max_rank,
+                                                                           bool weighted) {
     size_t n = nodes_with_fixed_rank_[p].size();
     std::vector<std::pair<std::vector<int>, double>> result(n);
     std::vector<Node*> nodes = GetNodesWithFixedRank(p);
@@ -1269,8 +1272,10 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::ClosenessSubgraph(int p,
             if (D[i][j]) {
                 mat(i, j) = D[i][j];
             }
+            assert(D[i][j] == D[j][i]);
         }
     }
+
     arma::Mat<double> dense = arma::Mat<double>(mat);
     arma::Mat<double> exp = arma::expmat_sym(dense);
     for (size_t i = 0; i < n; i++) {
@@ -1390,6 +1395,9 @@ std::pair<std::vector<double>, std::vector<std::vector<double>>> Hasse::EigenVal
     // TODO: fix make conv_to
     // TODO: add condition check on which
     // TODO: Sort eigvalues
+    if (eigvec.n_cols != cnt) {
+        std::cerr << "Warning: found only " << cnt << " eigenvectors\n";
+    }
     std::vector<std::vector<double>> eigen_vectors(eigvec.n_rows,
                                                    std::vector<double>(eigvec.n_cols));
     for (size_t row = 0; row < eigvec.n_rows; row++) {
@@ -1454,7 +1462,7 @@ std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> Hasse:
         // g = B1^T * (B1 * B1^T)^-1 * B1 * v
         MyMatrixDouble B1 = BoundaryMatrix(k, p).template cast<double>();
         MyMatrixDouble B1t = B1.transpose();
-        grad = OrthProject(vec, B1);
+        grad = OrthProject(vec, B1t);
     }
     MyMatrixDouble B2 = BoundaryMatrix(q, k).template cast<double>();
     B2.makeCompressed();

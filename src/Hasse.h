@@ -125,10 +125,10 @@ class Hasse {
     std::vector<std::pair<std::vector<int>, double>> BetweennessAll(int p, int max_rank,
                                                                     bool weighted = false);
 
-    std::vector<std::pair<std::vector<int>, double>> ClosenessEigen(int p, int max_rank,
-                                                                    bool weighted = false);
-    std::vector<std::pair<std::vector<int>, double>> ClosenessSubgraph(int p, int max_rank,
-                                                                       bool weighted = false);
+    std::vector<std::pair<std::vector<int>, double>> EigenCentrality(int p, int max_rank,
+                                                                     bool weighted = false);
+    std::vector<std::pair<std::vector<int>, double>> SubgraphCentrality(int p, int max_rank,
+                                                                        bool weighted = false);
 
     std::vector<std::pair<int, int>> FVector();
 

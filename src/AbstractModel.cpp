@@ -61,15 +61,15 @@ std::vector<std::pair<std::vector<int>, double>> AbstractModel::BetweennessAll(i
     return hasse_.BetweennessAll(p, max_rank, weighted);
 }
 
-std::vector<std::pair<std::vector<int>, double>> AbstractModel::ClosenessEigen(int p, int max_rank,
-                                                                               bool weighted) {
-    return hasse_.ClosenessEigen(p, max_rank, weighted);
+std::vector<std::pair<std::vector<int>, double>> AbstractModel::EigenCentrality(int p, int max_rank,
+                                                                                bool weighted) {
+    return hasse_.EigenCentrality(p, max_rank, weighted);
 }
 
-std::vector<std::pair<std::vector<int>, double>> AbstractModel::ClosenessSubgraph(int p,
-                                                                                  int max_rank,
-                                                                                  bool weighted) {
-    return hasse_.ClosenessSubgraph(p, max_rank, weighted);
+std::vector<std::pair<std::vector<int>, double>> AbstractModel::SubgraphCentrality(int p,
+                                                                                   int max_rank,
+                                                                                   bool weighted) {
+    return hasse_.SubgraphCentrality(p, max_rank, weighted);
 }
 
 int AbstractModel::Dimension() {
