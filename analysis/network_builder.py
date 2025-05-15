@@ -6,7 +6,6 @@ from abc import ABC, abstractmethod
 simpl = load_simpl_module()
 
 
-# TODO: cache?
 class Builder(ABC):
 
     def create_network(self, sets: List[List[int]], weighted=True):

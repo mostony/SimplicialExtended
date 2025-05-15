@@ -5,7 +5,8 @@ class DatasetLoader:
 
     def load_dataset(name: str, load_labels=True):
         """
-        Get (hyperedges, labels) by name of dataset
+        Get hyperedges and optional labels by name of dataset.
+        Also compress all vertices in continuous range.
         """
         sets = FileDatasetLoader.load_hyper_edges(
             f"./data/{name}/hyperedges-{name}.txt"
@@ -56,9 +57,10 @@ class FileDatasetLoader:
 
     def load_hyper_edges(path: str) -> List[List[int]]:
         """
-        File by given path contains set of hyperedges. Each hyperedge on distinct line, vertices separated by comma.
-        Returns list of hyper_edges. Vertices in each hyper_edge are sorted and numeration from zero.
-        Hyperedges with size >= MAX_EDGE_SIZE are ignored.
+        File by given path should contains set of hyperedges.
+        Each hyperedge on distinct line, vertices separated by comma.
+        Returns list of hyper_edges.
+        Hyperedges with size > MAX_EDGE_SIZE are ignored.
         """
         hyper_edges = []
 
@@ -75,8 +77,8 @@ class FileDatasetLoader:
 
     def load_node_labels(path: str) -> List[int]:
         """
-        File by given path contains labels for each vertices. Each label on distinct line.
-        Returns true label for every node in dataset.
+        File by given path should contain labels for each vertices.
+        Each label on distinct line.
         """
         true_labels = []
         with open(path, "r") as file:
