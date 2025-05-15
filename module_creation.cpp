@@ -77,15 +77,17 @@ PYBIND11_MODULE(simpl, m) {
              "vec"_a, "Decompose vector in gradient, harmonic and solenoidal components")
         .def("BettiNumber", &SimplicialComplex::BettiNumber, "k"_a,
              "Get the k betti number of simplicial complex")
+        .def("CommonNeighbors", &SimplicialComplex::CommonNeighbors, "node1"_a, "node2"_a, "k"_a,
+             "Get common neighbors of two nodes by k-th upper rank")
         .def("Closeness", &SimplicialComplex::Closeness, "node"_a, "q"_a, "weighted"_a = false,
              "Calculate closeness for given node via nodes with rank=q")
         .def("ClosenessAll", &SimplicialComplex::ClosenessAll, "k"_a, "q"_a, "weighted"_a = false,
              "Calculate closeness for all node with rank=k via nodes with rank=q")
         .def(
-            "ClosenessEigen", &SimplicialComplex::ClosenessEigen, "p"_a, "max_rank"_a,
+            "EigenCentrality", &SimplicialComplex::EigenCentrality, "k"_a, "q"_a,
             "weighted"_a = false,
             "Calculate eigen closeness for all node with rank=p via upper nodes with rank=max_rank")
-        .def("ClosenessSubgraph", &SimplicialComplex::ClosenessSubgraph, "p"_a, "max_rank"_a,
+        .def("SubgraphCentrality", &SimplicialComplex::SubgraphCentrality, "k"_a, "q"_a,
              "weighted"_a = false,
              "Calculate subgraph closeness for all node with rank=p via upper nodes with "
              "rank=max_rank")
@@ -176,6 +178,8 @@ PYBIND11_MODULE(simpl, m) {
              "k-adjacency")
         .def("BettiNumber", &HyperGraph::BettiNumber, "k"_a,
              "Get the k-th Betti number of the hypergraph")
+        .def("CommonNeighbors", &HyperGraph::CommonNeighbors, "node1"_a, "node2"_a, "k"_a,
+             "Get common neighbors of two nodes by k-th upper rank")
         .def("Closeness", &HyperGraph::Closeness, "node"_a, "q"_a, "weighted"_a = false,
              "Calculate the closeness centrality for the given node via nodes "
              "with rank=q")
@@ -183,10 +187,9 @@ PYBIND11_MODULE(simpl, m) {
              "Calculate the closeness centrality for all nodes with rank=k via "
              "nodes with rank=q")
         .def(
-            "ClosenessEigen", &HyperGraph::ClosenessEigen, "p"_a, "max_rank"_a,
-            "weighted"_a = false,
+            "EigenCentrality", &HyperGraph::EigenCentrality, "k"_a, "q"_a, "weighted"_a = false,
             "Calculate eigen closeness for all node with rank=p via upper nodes with rank=max_rank")
-        .def("ClosenessSubgraph", &HyperGraph::ClosenessSubgraph, "p"_a, "max_rank"_a,
+        .def("SubgraphCentrality", &HyperGraph::SubgraphCentrality, "k"_a, "q"_a,
              "weighted"_a = false,
              "Calculate subgraph closeness for all node with rank=p via upper nodes with "
              "rank=max_rank")
@@ -264,6 +267,8 @@ PYBIND11_MODULE(simpl, m) {
              "Get the degrees of all nodes with the specified rank and "
              "k-adjacency")
         .def("BettiNumber", &Graph::BettiNumber, "k"_a, "Get the k-th Betti number of the graph")
+        .def("CommonNeighbors", &Graph::CommonNeighbors, "node1"_a, "node2"_a, "k"_a,
+             "Get common neighbors of two nodes by k-th upper rank")
         .def("Closeness", &Graph::Closeness, "node"_a, "q"_a, "weighted"_a = false,
              "Calculate the closeness centrality for the given node via nodes "
              "with rank=q")
@@ -271,10 +276,9 @@ PYBIND11_MODULE(simpl, m) {
              "Calculate the closeness centrality for all nodes with rank=k via "
              "nodes with rank=q")
         .def(
-            "ClosenessEigen", &Graph::ClosenessEigen, "p"_a, "max_rank"_a, "weighted"_a = false,
+            "EigenCentrality", &Graph::EigenCentrality, "k"_a, "q"_a, "weighted"_a = false,
             "Calculate eigen closeness for all node with rank=p via upper nodes with rank=max_rank")
-        .def("ClosenessSubgraph", &Graph::ClosenessSubgraph, "p"_a, "max_rank"_a,
-             "weighted"_a = false,
+        .def("SubgraphCentrality", &Graph::SubgraphCentrality, "k"_a, "q"_a, "weighted"_a = false,
              "Calculate subgraph closeness for all node with rank=p via upper nodes with "
              "rank=max_rank")
         .def("Betweenness", &Graph::Betweenness, "node"_a, "q"_a, "weighted"_a = false,
@@ -359,6 +363,8 @@ PYBIND11_MODULE(simpl, m) {
              "k-adjacency")
         .def("BettiNumber", &CombinatorialComplex::BettiNumber, "k"_a,
              "Get the k-th Betti number of the combinatorial complex")
+        .def("CommonNeighbors", &CombinatorialComplex::CommonNeighbors, "node1"_a, "node2"_a, "k"_a,
+             "Get common neighbors of two nodes by k-th upper rank")
         .def("Closeness", &CombinatorialComplex::Closeness, "node"_a, "q"_a, "weighted"_a = false,
              "Calculate the closeness centrality for the given node via nodes "
              "with rank=q")
@@ -367,10 +373,10 @@ PYBIND11_MODULE(simpl, m) {
              "Calculate the closeness centrality for all nodes with rank=k via "
              "nodes with rank=q")
         .def(
-            "ClosenessEigen", &CombinatorialComplex::ClosenessEigen, "p"_a, "max_rank"_a,
+            "EigenCentrality", &CombinatorialComplex::EigenCentrality, "k"_a, "q"_a,
             "weighted"_a = false,
             "Calculate eigen closeness for all node with rank=p via upper nodes with rank=max_rank")
-        .def("ClosenessSubgraph", &CombinatorialComplex::ClosenessSubgraph, "p"_a, "max_rank"_a,
+        .def("SubgraphCentrality", &CombinatorialComplex::SubgraphCentrality, "k"_a, "q"_a,
              "weighted"_a = false,
              "Calculate subgraph closeness for all node with rank=p via upper nodes with "
              "rank=max_rank")

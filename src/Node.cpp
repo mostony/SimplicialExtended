@@ -31,7 +31,7 @@ void Node::UpdateWeight(double new_weight) {
 
 std::vector<Node*> Node::GetAllUpper(int upper_rank) {
     if (upper_rank < rank) {
-        throw std::runtime_error("upper rank should be >= current rank");
+        throw std::runtime_error("Upper rank should be >= node rank");
     }
     std::queue<Node*> queue;
     std::unordered_set<Node*> visited;
@@ -51,5 +51,30 @@ std::vector<Node*> Node::GetAllUpper(int upper_rank) {
             }
         }
     }
-    return std::move(result);
+    return result;
+}
+
+std::vector<Node*> Node::GetAllLower(int lower_rank) {
+    if (lower_rank > rank) {
+        throw std::runtime_error("Lower rank should be <= node rank");
+    }
+    std::queue<Node*> queue;
+    std::unordered_set<Node*> visited;
+    queue.push(this);
+    visited.insert(this);
+    std::vector<Node*> result;
+    while (queue.size()) {
+        auto v = queue.front();
+        queue.pop();
+        if (v->rank == lower_rank) {
+            result.push_back(v);
+        }
+        for (auto u : v->lower) {
+            if (u->rank >= lower_rank && !visited.contains(u)) {
+                visited.insert(u);
+                queue.push(u);
+            }
+        }
+    }
+    return result;
 }

@@ -39,6 +39,10 @@ int AbstractModel::BettiNumber(int k) {
     return hasse_.BettiNumber(k);
 }
 
+double AbstractModel::CommonNeighbors(std::vector<int> node1, std::vector<int> node2, int k) {
+    return hasse_.CommonNeighbors(node1, node2, k);
+}
+
 MyMatrixInt AbstractModel::BoundaryMatrix(int k, int p) {
     return hasse_.BoundaryMatrix(k, p);
 }

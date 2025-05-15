@@ -501,6 +501,46 @@ int Hasse::BettiNumber(int k) {
     return kernel - image;
 }
 
+double Hasse::CommonNeighbors(std::vector<int> node1, std::vector<int> node2, int k) {
+    if (!mapping_.count(node1)) {
+        throw std::runtime_error("Node1 doesn't exists");
+    }
+    if (!mapping_.count(node2)) {
+        throw std::runtime_error("Node2 doesn't exists");
+    }
+    auto v1 = GetNode(node1);
+    auto v2 = GetNode(node2);
+    if (v1->rank != v2->rank) {
+        throw std::runtime_error("Sizes of nodes should be the same");
+    }
+    int p = v1->rank;
+    auto upper1 = v1->GetAllUpper(k);
+    std::unordered_set<Node*> neighbors1;
+    for (auto up : upper1) {
+        auto neigh = up->GetAllLower(p);
+        for (auto n : neigh) {
+            neighbors1.insert(n);
+        }
+    }
+
+    auto upper2 = v2->GetAllUpper(k);
+    std::unordered_set<Node*> neighbors2;
+    for (auto up : upper2) {
+        auto neigh = up->GetAllLower(p);
+        for (auto n : neigh) {
+            neighbors2.insert(n);
+        }
+    }
+
+    double result = 0;
+    for (auto n1 : neighbors1) {
+        if (neighbors2.contains(n1) && n1 != v1 && n1 != v2) {
+            result += 1;
+        }
+    }
+    return result;
+}
+
 int Hasse::CalculateSign(const std::vector<int>& subset, const std::vector<int>& set) {
     assert(In(subset, set));
     int inv = 0;
@@ -1224,7 +1264,6 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::EigenCentrality(int p, i
                                                                         bool weighted) {
     size_t n = nodes_with_fixed_rank_[p].size();
     std::vector<Node*> nodes = GetNodesWithFixedRank(p);
-    std::vector<std::pair<std::vector<int>, double>> result(n);
 
     auto D = AdjacencyMatrix(p, p - 1, max_rank, weighted);
 
@@ -1252,8 +1291,9 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::EigenCentrality(int p, i
         vec[row] = eigvec(row, 0);
     }
 
+    std::vector<std::pair<std::vector<int>, double>> result;
     for (size_t i = 0; i < n; i++) {
-        result[i] = {nodes[i]->data, vec[i]};
+        result.emplace_back(nodes[i]->data, vec[i]);
     }
     return result;
 }
@@ -1261,9 +1301,7 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::EigenCentrality(int p, i
 std::vector<std::pair<std::vector<int>, double>> Hasse::SubgraphCentrality(int p, int max_rank,
                                                                            bool weighted) {
     size_t n = nodes_with_fixed_rank_[p].size();
-    std::vector<std::pair<std::vector<int>, double>> result(n);
     std::vector<Node*> nodes = GetNodesWithFixedRank(p);
-    int total_threads = std::thread::hardware_concurrency();
 
     auto D = AdjacencyMatrix(p, p - 1, max_rank, weighted);
     arma::SpMat<double> mat(n, n);
@@ -1278,8 +1316,10 @@ std::vector<std::pair<std::vector<int>, double>> Hasse::SubgraphCentrality(int p
 
     arma::Mat<double> dense = arma::Mat<double>(mat);
     arma::Mat<double> exp = arma::expmat_sym(dense);
+
+    std::vector<std::pair<std::vector<int>, double>> result;
     for (size_t i = 0; i < n; i++) {
-        result[i] = {nodes[i]->data, exp(i, i)};
+        result.emplace_back(nodes[i]->data, exp(i, i));
     }
     return result;
 }

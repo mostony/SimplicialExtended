@@ -95,6 +95,8 @@ class Hasse {
 
     int BettiNumber(int k);
 
+    double CommonNeighbors(std::vector<int> node1, std::vector<int> node2, int k);
+
     /* ---------------------- boundary ---------------------- */
 
     /// C_k -> C_p

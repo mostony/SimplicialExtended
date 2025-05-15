@@ -34,6 +34,8 @@ class AbstractModel {
 
     int BettiNumber(int k);
 
+    double CommonNeighbors(std::vector<int> node1, std::vector<int> node2, int k);
+
     MyMatrixInt BoundaryMatrix(int k, int p);
 
     double Closeness(std::vector<int> node, int max_rank, bool weighted = false);

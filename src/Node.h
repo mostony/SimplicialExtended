@@ -13,6 +13,8 @@ struct Node {
 
     std::vector<Node*> GetAllUpper(int upper_rank);
 
+    std::vector<Node*> GetAllLower(int lower_rank);
+
     std::vector<Node*> upper, lower;
     std::vector<int> data;
     int rank = 0;

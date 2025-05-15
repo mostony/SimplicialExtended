@@ -6,14 +6,16 @@ void Graph::AddEdge(int v, int u) {
     if (v > u) {
         std::swap(v, u);
     }
-    hasse_.RecursiveAddNode({v, u});
+    std::vector<int> edge = {v, u};
+    hasse_.RecursiveAddNode(edge);
 }
 
 void Graph::RemoveEdge(int v, int u) {
     if (v > u) {
         std::swap(v, u);
     }
-    hasse_.RemoveNode({v, u});
+    std::vector<int> edge = {v, u};
+    hasse_.RemoveNode(edge);
 }
 
 std::vector<std::vector<int>> Graph::GetEdges() {
